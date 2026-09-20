@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Result Poster Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --gold:#c98f1e; --gold2:#e0a83a; --deep:#2a1806; --cream:#fbf3e2;
+  --bg:#f4f5f7; --panel-bg:#ffffff; --panel-card:#f7f8fa;
+  --border:#e2e5ea; --text:#1c1e22; --text-dim:#6b7280; --text-mute:#9aa1ab;
+  --sz-title:2.1rem; --sz-winner:1.65rem; --sz-result:8rem;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;
+  display:flex;flex-wrap:wrap;gap:20px;
+  padding:20px;justify-content:center;align-items:flex-start;
+}
+
+/* ---------- CONTROL PANEL ---------- */
+.panel{
+  width:340px;flex-shrink:0;background:var(--panel-bg);
+  border:1px solid var(--border);border-radius:14px;padding:18px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.panel h1{font-family:'Poppins',sans-serif;font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:2px}
+.panel .sub{font-size:.74rem;color:var(--text-dim);margin-bottom:14px}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-mute);margin-bottom:4px}
+.fg select,.fg input{
+  width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--panel-card);color:var(--text);font-size:.82rem;font-family:inherit;
+}
+.fg select:focus,.fg input:focus{outline:none;border-color:var(--gold)}
+.fg input[type="file"]{padding:7px 8px;font-size:.75rem;cursor:pointer}
+.fg input[type="range"]{padding:0;accent-color:var(--gold)}
+.sizeRow{display:flex;align-items:center;gap:8px}
+.sizeRow input[type="range"]{flex:1}
+.sizeRow .szVal{font-size:.72rem;color:var(--text-mute);min-width:34px;text-align:right}
+.rankRow{display:flex;gap:6px;margin-bottom:6px}
+.rankRow .medal{width:22px;flex-shrink:0;text-align:center;font-size:1rem;padding-top:7px}
+.rankRow .col{flex:1;display:flex;gap:6px;min-width:0}
+.rankRow .col input{flex:1;min-width:0;width:auto;margin-bottom:0;padding:8px 8px;font-size:.78rem}
+.hint{font-size:.68rem;color:var(--text-mute);margin:-4px 0 12px;line-height:1.4}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.btnrow{display:flex;gap:8px;margin-top:6px}
+button{
+  cursor:pointer;border:none;border-radius:9px;font-family:inherit;font-weight:700;
+  font-size:.8rem;padding:10px 12px;flex:1;transition:transform .15s,opacity .15s;
+}
+button:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#241503}
+.btn-primary:hover{opacity:.92}
+.btn-ghost{background:var(--panel-card);color:var(--text);border:1px solid var(--border)}
+.status{font-size:.72rem;color:#2f9e5c;margin-top:8px;min-height:15px}
+
+/* ---------- POSTER STAGE ---------- */
+.stage{width:100%;max-width:420px;flex-shrink:0}
+.stage .zoomNote{font-size:.7rem;color:var(--text-mute);margin-bottom:8px;text-align:center}
+#posterWrap{
+  position:relative;width:100%;max-width:420px;aspect-ratio:1080/1350;
+  margin:0 auto;overflow:hidden;border-radius:10px;
+  box-shadow:0 12px 34px rgba(0,0,0,.14);background:var(--panel-card);
+}
+#poster{
+  width:1080px;height:1350px;position:absolute;top:0;left:0;
+  transform-origin:top left;
+  background:url('https://i.ibb.co/Ld6gbMTx/file-00000000a02081fa993127dc87380471.png');
+  background-size:cover;background-position:center;
+  font-family:'Inter',sans-serif;
+}
+
+/* ---- header: edition badge (top-left) + logo lockup (top-right) ---- */
+.editionBadge{
+  position:absolute;left:78px;top:96px;z-index:3;
+  width:150px;height:150px;border-radius:50%;border:2px dashed rgba(251,243,226,.75);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  color:var(--cream);font-family:'Poppins',sans-serif;
+}
+.editionBadge b{display:block;font-size:2rem;font-weight:900;line-height:1}
+.editionBadge span{display:block;font-size:.66rem;letter-spacing:.08em;margin-top:2px;opacity:.9}
+
+.orgLockup{
+  position:absolute;right:70px;top:150px;z-index:3;
+  display:flex;align-items:center;gap:12px;
+}
+.orgLogo{width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
+.orgLogo img{width:100%;height:100%;object-fit:cover}
+.orgText b{display:block;font-size:1.3rem;color:var(--cream);font-weight:800;line-height:1.15}
+
+/* ---- left spine text (SSF D.K West / Sahityotsav / date / location) ---- */
+.leftSpine{
+  position:absolute;left:150px;top:330px;bottom:390px;z-index:3;
+  display:flex;flex-direction:row;align-items:flex-end;gap:10px;
+}
+.vText{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-family:'Poppins',sans-serif}
+.spineSmall{font-size:.95rem;font-weight:700;letter-spacing:.05em;color:var(--deep);opacity:.85}
+.spineMain{font-size:3.4rem;font-weight:900;color:var(--cream);text-shadow:3px 3px 0 var(--deep)}
+.spineDate{font-size:.85rem;font-weight:600;color:var(--deep);opacity:.75}
+
+/* ---- middle description paragraph ---- */
+.pDesc{
+  position:absolute;left:430px;top:330px;width:230px;z-index:3;
+  font-size:.78rem;line-height:1.55;color:rgba(42,24,6,.82);text-align:left;
+}
+
+/* ---- right column: category + winners ---- */
+.rightCol{position:absolute;left:590px;top:330px;width:420px;z-index:3}
+.eyebrow{
+  font-size:var(--sz-title);font-weight:700;color:var(--cream);margin-bottom:4px;
+  font-family:'Poppins',sans-serif;
+}
+.compName{
+  font-family:'Poppins',sans-serif;font-weight:800;font-size:calc(var(--sz-title) * 1.1);line-height:1.15;
+  color:var(--cream);margin-bottom:32px;
+}
+
+.winners{display:flex;flex-direction:column;gap:20px}
+.wRow{display:flex;align-items:baseline;gap:18px}
+.wNum{
+  font-family:'Poppins',sans-serif;font-weight:900;font-size:calc(var(--sz-winner) * 1.94);color:var(--cream);
+  -webkit-text-stroke:1.5px var(--deep);min-width:82px;
+}
+.wName{font-family:'Poppins',sans-serif;font-weight:800;font-size:var(--sz-winner);color:var(--cream)}
+.wChest{font-weight:600;opacity:.85;font-size:calc(var(--sz-winner) * .79)}
+.wPlace{font-size:calc(var(--sz-winner) * .79);color:rgba(251,243,226,.85);margin-top:2px}
+.wEmpty{opacity:.5;font-style:italic}
+
+/* ---- result banner (bottom-left) ---- */
+.resultZone{position:absolute;left:150px;bottom:280px;z-index:4}
+.resultLabel{
+  font-family:'Poppins',sans-serif;font-weight:900;font-size:3.4rem;letter-spacing:.02em;
+  color:var(--gold2);text-shadow:3px 3px 0 var(--deep);
+}
+.resultCount{
+  font-family:'Poppins',sans-serif;font-weight:900;font-size:var(--sz-result);line-height:.85;
+  color:var(--cream);text-shadow:6px 6px 0 var(--deep);margin-top:2px;
+}
+
+/* ---- footer ---- */
+.pFoot{
+  position:absolute;left:0;right:0;bottom:36px;z-index:5;padding:0 64px;
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+}
+.pFoot .fLeft{font-size:.95rem;font-weight:700;color:var(--cream)}
+.pFoot .fRight{font-size:.72rem;color:rgba(251,243,226,.65)}
+
+@media(max-width:820px){
+  body{flex-direction:column;align-items:center;padding:14px;gap:14px}
+  .panel{width:100%;max-width:420px}
+  .stage{max-width:420px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ CONTROL PANEL ============ -->
+<div class="panel">
+  <h1>🏆 Result Poster</h1>
+  <div class="sub">Generates a poster straight from this event's saved results.</div>
+
+  <div class="fg">
+    <label>Competition</label>
+    <select id="compSelect"><option value="">— Select a competition —</option></select>
+  </div>
+  <div class="hint">Pick a competition that already has results entered in the main app. Fields below auto-fill — edit anything by hand if needed.</div>
+
+  <div class="fg"><label>Category / Eyebrow text</label><input id="fCat" placeholder="e.g. General · Essay Writing"></div>
+  <div class="fg"><label>Competition title</label><input id="fComp" placeholder="e.g. Essay Writing (Hindi)"></div>
+
+  <div class="divider"></div>
+
+  <div class="rankRow">
+    <div class="medal">🥇</div>
+    <div class="col">
+      <input id="n1" placeholder="1st place name">
+      <input id="c1" placeholder="Chest / ID no.">
+    </div>
+  </div>
+  <div class="rankRow">
+    <div class="medal">🥈</div>
+    <div class="col">
+      <input id="n2" placeholder="2nd place name">
+      <input id="c2" placeholder="Chest / ID no.">
+    </div>
+  </div>
+  <div class="rankRow">
+    <div class="medal">🥉</div>
+    <div class="col">
+      <input id="n3" placeholder="3rd place name">
+      <input id="c3" placeholder="Chest / ID no.">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="fg"><label>Result count (total participants)</label><input id="fCount" placeholder="e.g. 24" inputmode="numeric"></div>
+  <div class="fg"><label>Edition / batch badge</label><input id="fEdition" placeholder="e.g. 14th Edition"></div>
+  <div class="fg"><label>Organisation name (footer)</label><input id="fOrg" placeholder="e.g. Hidaya Madrasa Chernikode"></div>
+  <div class="fg"><label>Footer right text</label><input id="fFootRight" placeholder="e.g. Event Crew"></div>
+
+  <div class="fg">
+    <label>Logo / icon (top-right)</label>
+    <input id="fLogoFile" type="file" accept="image/*">
+  </div>
+  <div class="fg"><label>Domain name (top-right)</label><input id="fDomain" placeholder="e.g. xi0.in"></div>
+
+  <div class="divider"></div>
+
+  <div class="fg"><label>Background image URL 🔗</label><input id="fBgUrl" type="text" placeholder="https://example.com/image.jpg"></div>
+  <div class="fg">
+    <label>Or upload background image</label>
+    <input id="fBgFile" type="file" accept="image/*">
+  </div>
+  <div class="hint" id="bgResetHint">Paste a link and press Enter, or upload a file — either replaces the poster background. <a href="#" id="bgResetLink" style="color:var(--gold);text-decoration:none;font-weight:700">Reset to default</a></div>
+
+  <div class="divider"></div>
+
+  <div class="fg">
+    <label>Title text size</label>
+    <div class="sizeRow"><input id="szTitle" type="range" min="1.2" max="3.2" step=".05" value="2.1"><span class="szVal" id="szTitleVal">2.1</span></div>
+  </div>
+  <div class="fg">
+    <label>Winners text size</label>
+    <div class="sizeRow"><input id="szWinner" type="range" min="1" max="2.6" step=".05" value="1.65"><span class="szVal" id="szWinnerVal">1.65</span></div>
+  </div>
+  <div class="fg">
+    <label>Result number size</label>
+    <div class="sizeRow"><input id="szResult" type="range" min="3" max="12" step=".1" value="8"><span class="szVal" id="szResultVal">8</span></div>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn-ghost" id="refreshBtn" type="button">↻ Reload data</button>
+    <button class="btn-primary" id="downloadBtn" type="button">⬇ Download PNG</button>
+  </div>
+  <div class="status" id="statusMsg"></div>
+</div>
+
+<!-- ============ POSTER STAGE ============ -->
+<div class="stage">
+  <div class="zoomNote">Live preview (exports at full 1080×1350)</div>
+  <div id="posterWrap">
+    <div id="poster">
+
+      <div class="editionBadge"><div><b id="pEditionNum">14</b><span id="pEditionWord">th Edition</span></div></div>
+
+      <div class="orgLockup">
+        <div class="orgLogo" id="pLogo">🕌</div>
+        <div class="orgText">
+          <b id="pDomain">yourdomain.com</b>
+        </div>
+      </div>
+
+      <div class="rightCol">
+        <div class="eyebrow" id="pCat">Category · Section</div>
+        <div class="compName" id="pComp">Competition Name</div>
+
+        <div class="winners" id="winnersBlock">
+          <div class="wRow">
+            <div class="wNum">01</div>
+            <div><div class="wName" id="wName1">—</div><div class="wPlace" id="wPlace1" style="display:none"></div></div>
+          </div>
+          <div class="wRow">
+            <div class="wNum">02</div>
+            <div><div class="wName" id="wName2">—</div><div class="wPlace" id="wPlace2" style="display:none"></div></div>
+          </div>
+          <div class="wRow">
+            <div class="wNum">03</div>
+            <div><div class="wName" id="wName3">—</div><div class="wPlace" id="wPlace3" style="display:none"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="resultZone">
+        <div class="resultLabel">RESULT</div>
+        <div class="resultCount" id="pCount">0</div>
+      </div>
+
+      <div class="pFoot">
+        <div class="fLeft" id="pFootRight">Event Crew</div>
+        <div class="fRight">●</div>
+        <div class="fLeft" id="pOrg">SSF D.K District West</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pollappp_v2_state';
+let S = null;
+
+function loadS() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    S = raw ? JSON.parse(raw) : null;
+  } catch(e) { S = null; }
+  return S;
+}
+
+function gCatN(id) {
+  if (!S) return id;
+  const c = (S.categories||[]).find(x=>x.id===id);
+  return c ? c.name : id;
+}
+function gS(id){ return S ? (S.students||[]).find(s=>s.id===id) : null; }
+
+function populateCompetitions() {
+  const sel = document.getElementById('compSelect');
+  sel.innerHTML = '<option value="">— Select a competition —</option>';
+  if (!S || !S.competitions || !S.competitions.length) {
+    document.getElementById('statusMsg').textContent = 'No saved data found on this device. Fill the poster fields manually below, or open index.html here first.';
+    document.getElementById('statusMsg').style.color = '#e0a34a';
+    return;
+  }
+  S.competitions.forEach(c=>{
+    const resCount = (S.results||[]).filter(r=>r.compId===c.id).length;
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name + ' (' + gCatN(c.category) + ') — ' + resCount + ' results';
+    sel.appendChild(opt);
+  });
+  document.getElementById('statusMsg').textContent = 'Loaded ' + S.competitions.length + ' competitions.';
+  document.getElementById('statusMsg').style.color = '#7bd88f';
+
+  // org + logo defaults
+  if (S.config) {
+    document.getElementById('fOrg').value = S.config.orgName || '';
+    if (S.config.logo) {
+      document.getElementById('pLogo').innerHTML = '<img src="'+S.config.logo+'">';
+    }
+  }
+}
+
+function fillFromCompetition(compId) {
+  if (!S || !compId) return;
+  const comp = (S.competitions||[]).find(c=>c.id===compId);
+  if (!comp) return;
+  document.getElementById('fCat').value = gCatN(comp.category);
+  document.getElementById('fComp').value = comp.name;
+
+  const results = (S.results||[]).filter(r=>r.compId===compId);
+  document.getElementById('fCount').value = results.length;
+
+  ['1','2','3'].forEach(pos=>{
+    const r = results.find(x=>String(x.position)===pos);
+    const st = r ? gS(r.studentId) : null;
+    document.getElementById('n'+pos).value = st ? st.name : '';
+    document.getElementById('c'+pos).value = st ? st.chest : '';
+  });
+  render();
+}
+
+function render() {
+  document.getElementById('pCat').textContent = document.getElementById('fCat').value || 'Category · Section';
+  document.getElementById('pComp').textContent = document.getElementById('fComp').value || 'Competition Name';
+  document.getElementById('pCount').textContent = document.getElementById('fCount').value || '0';
+  document.getElementById('pOrg').textContent = document.getElementById('fOrg').value || 'Organisation Name';
+  document.getElementById('pFootRight').textContent = document.getElementById('fFootRight').value || 'Event Crew';
+  document.getElementById('pDomain').textContent = document.getElementById('fDomain').value || 'yourdomain.com';
+
+  const edition = document.getElementById('fEdition').value.trim();
+  if (edition) {
+    const m = edition.match(/^([\w]+)\s*(.*)$/);
+    document.getElementById('pEditionNum').textContent = m ? m[1] : edition;
+    document.getElementById('pEditionWord').textContent = m ? m[2] : '';
+  } else {
+    document.getElementById('pEditionNum').textContent = '';
+    document.getElementById('pEditionWord').textContent = '';
+  }
+
+  for (let i=1;i<=3;i++) {
+    const name = document.getElementById('n'+i).value.trim();
+    const chest = document.getElementById('c'+i).value.trim();
+    const nameEl = document.getElementById('wName'+i);
+    const placeEl = document.getElementById('wPlace'+i);
+    if (name) {
+      nameEl.innerHTML = chest ? name + ' <span class="wChest">(' + chest + ')</span>' : name;
+      nameEl.classList.remove('wEmpty');
+    } else {
+      nameEl.textContent = 'Not announced yet';
+      nameEl.classList.add('wEmpty');
+    }
+    placeEl.style.display = 'none';
+  }
+}
+
+document.querySelectorAll('.panel input').forEach(el=>el.addEventListener('input', render));
+document.getElementById('compSelect').addEventListener('change', e=>fillFromCompetition(e.target.value));
+document.getElementById('refreshBtn').addEventListener('click', ()=>{ loadS(); populateCompetitions(); });
+
+document.getElementById('fLogoFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    document.getElementById('pLogo').innerHTML = '<img src="'+ev.target.result+'">';
+  };
+  reader.readAsDataURL(file);
+});
+
+const DEFAULT_BG = "url('https://i.ibb.co/Ld6gbMTx/file-00000000a02081fa993127dc87380471.png')";
+
+function setPosterBg(url) {
+  document.getElementById('poster').style.background = 'url("' + url + '")';
+  document.getElementById('poster').style.backgroundSize = 'cover';
+  document.getElementById('poster').style.backgroundPosition = 'center';
+}
+
+document.getElementById('fBgUrl').addEventListener('keydown', e=>{
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const url = e.target.value.trim();
+    if (url) {
+      setPosterBg(url);
+      document.getElementById('fBgFile').value = '';
+      document.getElementById('statusMsg').textContent = 'Background image updated from link.';
+      document.getElementById('statusMsg').style.color = '#7bd88f';
+    }
+  }
+});
+document.getElementById('fBgUrl').addEventListener('change', e=>{
+  const url = e.target.value.trim();
+  if (url) {
+    setPosterBg(url);
+    document.getElementById('fBgFile').value = '';
+  }
+});
+
+document.getElementById('fBgFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    setPosterBg(ev.target.result);
+    document.getElementById('fBgUrl').value = '';
+    document.getElementById('statusMsg').textContent = 'Background image updated from upload.';
+    document.getElementById('statusMsg').style.color = '#7bd88f';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('bgResetLink').addEventListener('click', e=>{
+  e.preventDefault();
+  document.getElementById('poster').style.background = DEFAULT_BG;
+  document.getElementById('poster').style.backgroundSize = 'cover';
+  document.getElementById('poster').style.backgroundPosition = 'center';
+  document.getElementById('fBgUrl').value = '';
+  document.getElementById('fBgFile').value = '';
+  document.getElementById('statusMsg').textContent = 'Background reset to default.';
+  document.getElementById('statusMsg').style.color = '#7bd88f';
+});
+
+function wireSizeSlider(sliderId, valId, cssVar, unit) {
+  const slider = document.getElementById(sliderId);
+  const val = document.getElementById(valId);
+  slider.addEventListener('input', ()=>{
+    document.getElementById('poster').style.setProperty(cssVar, slider.value + unit);
+    val.textContent = slider.value;
+  });
+}
+wireSizeSlider('szTitle','szTitleVal','--sz-title','rem');
+wireSizeSlider('szWinner','szWinnerVal','--sz-winner','rem');
+wireSizeSlider('szResult','szResultVal','--sz-result','rem');
+
+function scalePoster() {
+  const wrap = document.getElementById('posterWrap');
+  const poster = document.getElementById('poster');
+  const scale = wrap.clientWidth / 1080;
+  poster.style.transform = 'scale(' + scale + ')';
+}
+window.addEventListener('resize', scalePoster);
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const poster = document.getElementById('poster');
+  const prevTransform = poster.style.transform;
+  poster.style.transform = 'none'; // export at true 1080x1350
+  html2canvas(poster, {backgroundColor:null, scale:1, width:1080, height:1350, useCORS:true, allowTaint:false}).then(canvas=>{
+    poster.style.transform = prevTransform;
+    const link = document.createElement('a');
+    const compTitle = (document.getElementById('fComp').value || 'result-poster').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+    link.download = compTitle + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(()=>{
+    poster.style.transform = prevTransform;
+    document.getElementById('statusMsg').textContent = 'Could not export — try again.';
+    document.getElementById('statusMsg').style.color = '#e07a7a';
+  });
+});
+
+// init
+loadS();
+populateCompetitions();
+render();
+scalePoster();
+</script>
+</body>
+</html>

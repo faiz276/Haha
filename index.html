@@ -1,0 +1,4559 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Meelad Programme Helper</title>
+<meta name="description" content="Meelad Programme Helper — Complete event management for Hidaya Madrasa Chernikode"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+/* ===== CSS VARIABLES ===== */
+:root{
+  --bg:#fafafa;--card:rgba(255,255,255,0.97);--acc:#ff8c00;--acc2:#ff3d00;--acc3:#ff5e00;
+  --t1:#1a1a2e;--t2:#3d3d5c;--t3:#8888aa;
+  --brd:rgba(200,200,210,0.35);--shd:0 8px 32px rgba(255,140,0,0.06);--shd2:0 4px 16px rgba(0,0,0,0.06);
+  --glass:rgba(255,255,255,0.75);--blur:blur(16px);--radius:18px;--rsm:10px;
+  --sw:268px;--hh:64px;--fh:48px;
+  --tr:all 0.22s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --bg:#0e0e1c;--card:rgba(22,22,44,0.95);--t1:#e8e8f8;--t2:#b0b0cc;--t3:#6060a0;
+  --brd:rgba(100,100,160,0.35);--shd:0 8px 32px rgba(0,0,0,0.45);--shd2:0 4px 16px rgba(0,0,0,0.35);
+  --glass:rgba(22,22,44,0.75);
+}
+
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--t1);
+  min-height:100vh;overflow-x:hidden;
+  transition:background .3s,color .3s;
+  background-image:
+    radial-gradient(circle at 15% 15%,rgba(255,140,0,.03) 0%,transparent 50%),
+    radial-gradient(circle at 85% 85%,rgba(255,61,0,.03) 0%,transparent 50%);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInR{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes confettiFall{0%{transform:translateY(-100vh) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes ribbonWave{0%,100%{transform:rotate(-1.5deg) scale(1)}50%{transform:rotate(1.5deg) scale(1.01)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes bounceIn{0%{transform:scale(.3);opacity:0}50%{transform:scale(1.07)}70%{transform:scale(.96)}100%{transform:scale(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ===== GLASS CARDS ===== */
+.glass{background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1.5px solid var(--brd);border-radius:var(--radius);box-shadow:var(--shd)}
+
+/* ===== BUTTONS ===== */
+button{cursor:pointer;border:none;font-family:inherit;font-size:.875rem;font-weight:600;border-radius:var(--rsm);padding:9px 18px;transition:var(--tr);letter-spacing:.01em}
+button:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.18)}
+button:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));color:#fff}
+.btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff}
+.btn-success{background:linear-gradient(135deg,#27ae60,#16a085);color:#fff}
+.btn-warning{background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff}
+.btn-secondary{background:rgba(255,140,0,.1);color:var(--acc);border:1.5px solid rgba(255,140,0,.2)}
+.btn-ghost{background:transparent;color:var(--t2);border:1.5px solid var(--brd)}
+.btn-outline{background:transparent;border:2px solid var(--acc);color:var(--acc)}
+
+/* ===== INPUTS ===== */
+input,select,textarea{
+  font-family:inherit;font-size:.875rem;font-weight:500;
+  padding:11px 14px;border:1.5px solid var(--brd);border-radius:var(--rsm);
+  background:var(--card);color:var(--t1);transition:var(--tr);width:100%;outline:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,140,0,.18)}
+input[type=checkbox]{width:auto;width:16px;height:16px;accent-color:var(--acc)}
+input::placeholder{color:var(--t3)}
+select option{background:var(--bg);color:var(--t1)}
+
+/* ===== HEADER ===== */
+.header{
+  position:sticky;top:0;z-index:100;min-height:var(--hh);
+  display:flex;align-items:center;padding:10px 22px;gap:14px;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1.5px solid var(--brd);box-shadow:0 2px 20px rgba(255,140,0,.08)
+}
+.logo-img{height:40px;width:40px;border-radius:50%;object-fit:cover;box-shadow:0 2px 12px rgba(255,140,0,.25);flex-shrink:0}
+.logo-placeholder{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 14px rgba(255,140,0,.3);flex-shrink:0}
+.header .brand{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;overflow:hidden}
+.header .title{font-size:1rem;font-weight:800;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header .org{font-size:.7rem;color:var(--t3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.theme-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:var(--card);border:1.5px solid var(--brd)}
+.save-badge{font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(39,174,96,.12);color:#27ae60;border:1px solid rgba(39,174,96,.25);white-space:nowrap}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  position:fixed;left:0;top:var(--hh);width:var(--sw);
+  height:calc(100vh - var(--hh));height:calc(100dvh - var(--hh));
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-right:1.5px solid var(--brd);z-index:90;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);padding:8px 0 calc(var(--fh) + 40px)
+}
+.sidebar.open{z-index:150}
+.sb-group{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);padding:14px 20px 4px}
+.sidebar a{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;
+  color:var(--t2);text-decoration:none;font-size:.865rem;font-weight:500;
+  transition:var(--tr);border-left:3px solid transparent;
+  border-radius:0 var(--rsm) var(--rsm) 0;margin:1px 8px 1px 0
+}
+.sidebar a:hover,.sidebar a.active{background:rgba(255,140,0,.1);color:var(--acc);border-left-color:var(--acc)}
+.sidebar a .ico{font-size:.95rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar a .badge-new{background:var(--acc);color:#fff;font-size:.65rem;padding:2px 6px;border-radius:10px;margin-left:auto}
+
+/* ===== MAIN ===== */
+.main{margin-left:var(--sw);padding:22px;min-height:calc(100vh - var(--hh));animation:fadeIn .35s ease;padding-bottom:calc(var(--fh) + 40px)}
+
+/* ===== FOOTER ===== */
+.footer{position:fixed;bottom:0;left:0;right:0;height:var(--fh);display:flex;align-items:center;justify-content:center;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:1.5px solid var(--brd);font-size:.78rem;color:var(--t3);z-index:100;gap:6px;padding-bottom:env(safe-area-inset-bottom)}
+.footer .brand{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800}
+
+/* ===== SECTION HEADING ===== */
+.sh{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--brd);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sh h2{font-size:1.5rem;font-weight:900}
+.sh .hint{font-size:.78rem;color:var(--t3);margin-left:auto}
+
+/* ===== STAT GRID ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:15px;margin-bottom:22px}
+.stat-card{padding:20px 18px;text-align:center;position:relative;overflow:hidden;animation:fadeIn .4s ease}
+.stat-card::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));opacity:.07}
+.stat-card .num{font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:6px}
+.stat-card .lbl{font-size:.78rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+
+/* ===== TABLE ===== */
+table{width:100%;border-collapse:separate;border-spacing:0;margin:12px 0}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--brd)}
+th{font-size:.74rem;text-transform:uppercase;color:var(--t3);font-weight:700;letter-spacing:.06em;position:sticky;top:0;background:var(--card)}
+tr:hover td{background:rgba(255,140,0,.04)}
+.tbl-wrap{border-radius:var(--rsm);overflow:hidden;border:1.5px solid var(--brd)}
+
+/* ===== BADGES ===== */
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.73rem;font-weight:700;line-height:1}
+.bc{background:rgba(255,140,0,.12);color:var(--acc)}
+.bg2{background:rgba(255,61,0,.12);color:var(--acc2)}
+.bst{background:rgba(39,174,96,.12);color:#27ae60}
+.bns{background:rgba(243,156,18,.12);color:#f39c12}
+.bpt{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));color:#fff;min-width:28px;text-align:center}
+.bgd{background:rgba(52,152,219,.12);color:#3498db}
+.blk{background:rgba(231,76,60,.12);color:#e74c3c}
+.bok{background:rgba(39,174,96,.12);color:#27ae60}
+.bwn{background:rgba(243,156,18,.12);color:#f39c12}
+
+/* ===== CHIPS ===== */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(255,140,0,.1);color:var(--acc);margin:2px}
+.chip .x{cursor:pointer;font-weight:800;margin-left:3px;opacity:.5;font-size:.85rem;transition:var(--tr)}
+.chip .x:hover{opacity:1;color:#e74c3c}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tab{padding:8px 16px;border-radius:20px;font-size:.83rem;font-weight:600;cursor:pointer;transition:var(--tr);background:var(--card);border:1.5px solid var(--brd);color:var(--t2)}
+.tab.active{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 4px 14px rgba(255,140,0,.35)}
+.tab:hover:not(.active){background:rgba(255,140,0,.08);border-color:var(--acc)}
+
+/* ===== MODAL ===== */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.modal{background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1.5px solid var(--brd);border-radius:var(--radius);padding:28px;max-width:580px;width:100%;max-height:88vh;overflow-y:auto;animation:slideDown .3s cubic-bezier(.4,0,.2,1);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.modal h3{margin-bottom:18px;font-size:1.2rem;font-weight:800}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--brd)}
+
+/* ===== FORM GROUP ===== */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.76rem;font-weight:700;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.fg-row{display:flex;gap:10px;flex-wrap:wrap}
+.fg-row .fg{flex:1;min-width:140px;margin-bottom:0}
+
+/* ===== TOAST ===== */
+#toasts{position:fixed;top:78px;right:18px;z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:12px;font-size:.875rem;font-weight:600;animation:slideInR .3s ease;min-width:250px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.22);pointer-events:all;cursor:pointer}
+.toast-success{background:linear-gradient(135deg,#27ae60,#16a085);color:#fff}
+.toast-error{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff}
+.toast-warning{background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff}
+.toast-info{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));color:#fff}
+
+/* ===== SEARCH BOX ===== */
+.sbox{position:relative;margin-bottom:16px}
+.sbox input{padding-left:40px}
+.sbox::before{content:"🔍";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:.9rem;z-index:1}
+
+/* ===== LOGIN PAGE ===== */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,rgba(255,140,0,.06),rgba(255,61,0,.04))}
+.login-box{max-width:440px;width:100%;padding:44px;animation:slideDown .5s ease;position:relative;overflow:hidden}
+.login-box::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));opacity:.07;pointer-events:none}
+.login-logo{text-align:center;margin-bottom:20px}
+.login-logo-ph{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));display:inline-flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 30px rgba(255,140,0,.3)}
+.login-box h2{text-align:center;margin-bottom:6px;font-size:1.45rem;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.login-box .sub{text-align:center;color:var(--t3);font-size:.84rem;margin-bottom:28px;font-weight:500}
+.ltabs{display:flex;margin-bottom:24px;border-radius:12px;overflow:hidden;border:1.5px solid var(--brd);background:var(--bg)}
+.ltab{flex:1;padding:11px;text-align:center;cursor:pointer;font-weight:700;font-size:.875rem;transition:var(--tr);color:var(--t3)}
+.ltab.active{background:var(--acc);color:#fff;border-radius:10px}
+
+/* ===== LOCKED OVERLAY ===== */
+.locked{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:18px;text-align:center;padding:20px}
+.lock-icon{font-size:5rem;animation:float 2s infinite ease-in-out}
+
+/* ===== CONFETTI ===== */
+.cft{position:fixed;top:-10px;width:10px;height:10px;border-radius:50%;animation:confettiFall linear forwards;pointer-events:none;z-index:50}
+
+/* ===== RIBBON ===== */
+.ribbon{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));color:#fff;padding:14px 32px;border-radius:14px;text-align:center;font-size:1.15rem;font-weight:800;animation:ribbonWave 3s infinite ease-in-out;margin-bottom:22px;box-shadow:0 8px 30px rgba(255,140,0,.38)}
+
+/* ===== RANK CARD ===== */
+.rank-card{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:10px;border-radius:var(--radius);transition:var(--tr)}
+.rank-card:hover{transform:translateX(4px)}
+.rank-card.top1{background:linear-gradient(135deg,rgba(255,215,0,.18),rgba(255,215,0,.06));border:1.5px solid rgba(255,215,0,.4)}
+.rank-card.top2{background:linear-gradient(135deg,rgba(192,192,192,.18),rgba(192,192,192,.06));border:1.5px solid rgba(192,192,192,.4)}
+.rank-card.top3{background:linear-gradient(135deg,rgba(205,127,50,.18),rgba(205,127,50,.06));border:1.5px solid rgba(205,127,50,.4)}
+.rank-icon{font-size:2rem;animation:float 3s infinite ease-in-out;flex-shrink:0}
+.rank-pts{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-left:auto;flex-shrink:0}
+
+/* ===== PRATHIBA CARD ===== */
+.pcard{padding:14px 16px;border-radius:var(--radius);margin-bottom:10px;display:flex;align-items:center;gap:14px;border:1.5px solid var(--brd);background:var(--card);transition:var(--tr)}
+.pcard:hover{transform:translateY(-2px);box-shadow:var(--shd)}
+
+/* ===== COMP REG CARD ===== */
+.crcard{padding:18px;margin-bottom:14px;border-radius:var(--radius)}
+.crhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ===== SUGGEST LIST ===== */
+.sswrap{position:relative;max-width:360px}
+.suglist{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1.5px solid var(--brd);border-radius:12px;max-height:230px;overflow-y:auto;z-index:15;box-shadow:var(--shd);display:none}
+.suglist.show{display:block}
+.sugitem{padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:500;display:flex;align-items:center;gap:8px;transition:var(--tr);border-bottom:1px solid var(--brd)}
+.sugitem:last-child{border-bottom:none}
+.sugitem:hover{background:rgba(255,140,0,.1)}
+.sugitem.dis{opacity:.45;cursor:not-allowed}
+.warn-txt{color:#f39c12;font-size:.7rem;margin-left:auto}
+
+/* ===== INFO BOX ===== */
+.infobox{background:rgba(255,140,0,.06);border:1px dashed var(--acc);border-radius:12px;padding:13px 16px;margin-bottom:14px;font-size:.85rem;color:var(--t2);display:flex;align-items:flex-start;gap:10px}
+.infobox .ii{font-size:1.15rem;flex-shrink:0;margin-top:1px}
+
+/* ===== SLOT CARD / RESULT ITEM ===== */
+.slot-card{border-radius:14px;padding:16px;margin-bottom:12px;border:1.5px solid var(--brd);background:var(--card)}
+.slot-card h4{margin-bottom:12px;color:var(--acc);font-weight:800;font-size:1rem}
+.ritem{display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;margin-bottom:6px;background:rgba(255,140,0,.04);flex-wrap:wrap;transition:var(--tr)}
+.ritem:hover{background:rgba(255,140,0,.09)}
+
+/* ===== INLINE FORM ===== */
+.iform{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;padding:18px;margin-bottom:16px}
+.iform .fg{margin-bottom:0;flex:1;min-width:130px}
+
+/* ===== PREMIUM ===== */
+.premium{padding:60px 20px;text-align:center}
+.premium h2{font-size:2rem;margin-bottom:10px;background:linear-gradient(135deg,gold,orange);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.contact-box{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));color:#fff;padding:15px 30px;border-radius:12px;font-size:1.1rem;display:inline-block;margin-top:16px}
+
+/* ===== UTILITIES ===== */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+code{background:rgba(255,140,0,.1);padding:2px 8px;border-radius:6px;font-size:.83rem;font-family:monospace}
+.grad{background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.empty{text-align:center;padding:50px 20px;color:var(--t3)}
+.empty .ei{font-size:3.5rem;margin-bottom:14px;opacity:.55}
+.empty p{font-size:.95rem;font-weight:500}
+.divider{height:1px;background:var(--brd);margin:16px 0}
+.fw{font-weight:700}
+.muted{color:var(--t3)}
+.eye-btn{cursor:pointer;font-size:.88rem;background:rgba(255,140,0,.1);border:none;padding:6px 10px;border-radius:8px;color:var(--acc);transition:var(--tr)}
+.eye-btn:hover{background:var(--acc);color:#fff;transform:scale(1.1)}
+.hamburger{display:none;font-size:1.5rem;background:none;padding:4px 8px;border:none;color:var(--t1)}
+.sp{width:18px;height:18px;border:2.5px solid rgba(255,140,0,.2);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+.student-profile{padding:28px;max-width:520px;margin:40px auto;text-align:center}
+.chest-big{font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc3),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--t3)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:14px;padding-bottom:calc(var(--fh) + 40px)}
+  .hamburger{display:block!important}
+  .stat-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .iform{flex-direction:column}
+  .sswrap{max-width:100%}
+  .login-box{padding:28px}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .sh .hint{display:none}
+  .tbl-wrap{overflow-x:auto}
+  .header{padding:8px 12px;gap:8px}
+  .header .title{font-size:.78rem}
+  .header .org{font-size:.62rem}
+  .save-badge{display:none}
+  .header-right{gap:4px}
+  .theme-btn{width:32px;height:32px;font-size:1rem}
+  .header-right .btn-ghost{padding:6px 10px;font-size:.72rem}
+  .logo-img,.logo-placeholder{width:34px;height:34px}
+  .footer{z-index:80}
+  .sidebar.open{z-index:150}
+}
+
+@media(max-width:400px){
+  .header .title{font-size:.7rem}
+  .header .org{display:none}
+  .header-right .btn-ghost span.lbl{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+
+<script>
+/* ================================================================
+   REAL QR CODE ENCODER LIBRARY (kazuhikoarase/qrcode-generator, MIT)
+   ================================================================ */
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+
+<script>
+'use strict';
+/* ================================================================
+   STATE & PERSISTENCE
+   ================================================================ */
+const STORAGE_KEY = 'pollappp_v2_state';
+const API_URL = 'api.php';
+const API_KEY = 'change-me-please'; // must match API_KEY in api.php
+
+/* Auto-detects the domain this app is hosted on, for branding text.
+   Falls back to a generic label when opened locally (file://, no hostname). */
+function siteDomain() {
+  try {
+    const h = (location.hostname || '').replace(/^www\./, '');
+    return h || 'This App';
+  } catch (e) { return 'This App'; }
+}
+
+function defaultState() {
+  return {
+    config:{
+      eventName:siteDomain()+' MEELAD PROGRAMME HELPER',
+      orgName:'Hidaya Madrasa Chernikode',
+      adminPass:'admin123',logo:'',icon:'🕌',
+      accentColor:'#ff8c00',maxProgPerCat:0,maxGenProg:0
+    },
+    categories:[
+      {id:'subjunior',name:'Sub Junior',order:1},
+      {id:'junior',name:'Junior',order:2},
+      {id:'highschool',name:'High School',order:3},
+      {id:'hss',name:'Higher Secondary',order:4},
+      {id:'general',name:'General',order:5}
+    ],
+    teams:[],students:[],competitions:[],judges:[],
+    registrations:[],attendance:[],results:[],
+    bonus:[],locked:false,theme:'light',schedule:[]
+  };
+}
+
+function loadState() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (d) {
+      const p = JSON.parse(d);
+      const def = defaultState();
+      if (!p.schedule) p.schedule = [];
+      if (!p.bonus) p.bonus = [];
+      if (!p.attendance) p.attendance = [];
+      if (!p.judges) p.judges = [];
+      if (!p.config) p.config = def.config;
+      if (!p.config.accentColor) p.config.accentColor = '#ff8c00';
+      if (!p.config.maxProgPerCat) p.config.maxProgPerCat = 0;
+      if (!p.config.maxGenProg) p.config.maxGenProg = 0;
+      return p;
+    }
+  } catch(e) { console.error('Load error', e); }
+  return defaultState();
+}
+
+function saveState() {
+  try {
+    // Stamp every save with the time it was made, so we can tell local
+    // vs. server data apart later and never blindly clobber newer data.
+    S.updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+    // Mark that this device has changes the server hasn't confirmed yet.
+    // This flag survives a reload/close, so if the tab is closed before
+    // the debounced sync below fires, we know on next load that local
+    // data is ahead of the server and must not be overwritten.
+    localStorage.setItem(STORAGE_KEY + '_dirty', '1');
+    updateSaveBadge(true);
+  } catch(e) { toast('Storage full! Try exporting data.','error'); }
+  syncToServer();
+}
+
+/* ---- Server sync (data/state.json on the domain) ---- */
+let syncTimer = null;
+let serverSyncFailed = false;
+let syncInFlight = null;
+function syncToServer(immediate) {
+  clearTimeout(syncTimer);
+  const doSync = () => {
+    const payload = JSON.stringify(S);
+    syncInFlight = fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+      body: payload
+    }).then(r => {
+      if (!r.ok) throw new Error('sync failed');
+      serverSyncFailed = false;
+      // Only clear the dirty flag if nothing has changed since we
+      // started this request (S may have been edited again meanwhile).
+      if (JSON.stringify(S) === payload) {
+        localStorage.removeItem(STORAGE_KEY + '_dirty');
+      }
+      updateSyncBadge(true);
+    }).catch(() => {
+      if (!serverSyncFailed) { serverSyncFailed = true; toast('Server sync unavailable — saved locally only','warning'); }
+      updateSyncBadge(false);
+    }).finally(() => { syncInFlight = null; });
+  };
+  if (immediate) { doSync(); return; }
+  syncTimer = setTimeout(doSync, 600); // debounce rapid edits
+}
+
+// Flush any pending/unsynced changes before the page is closed or reloaded,
+// so a quick refresh right after adding data can't race the debounce timer
+// and lose those edits.
+window.addEventListener('beforeunload', () => {
+  if (localStorage.getItem(STORAGE_KEY + '_dirty')) {
+    clearTimeout(syncTimer);
+    try {
+      navigator.sendBeacon(API_URL, new Blob([JSON.stringify(S)], {type:'application/json'}));
+    } catch(e) {}
+  }
+});
+
+function hydrateFromServer() {
+  fetch(API_URL, { headers: { 'X-Api-Key': API_KEY } })
+    .then(r => r.ok ? r.json() : null)
+    .then(serverData => {
+      if (!serverData || !serverData.config) return;
+
+      // Never let a stale/older server copy stomp on local data that
+      // hasn't been confirmed saved to the server yet (e.g. the tab was
+      // closed/reloaded before the debounced sync fired, or another
+      // save is still in flight). In that case, push local up instead
+      // of pulling server data down.
+      const localDirty = !!localStorage.getItem(STORAGE_KEY + '_dirty');
+      const localNewer = S && S.updatedAt && serverData.updatedAt && S.updatedAt > serverData.updatedAt;
+      if (localDirty || localNewer || syncInFlight) {
+        syncToServer(true); // reconcile: make the server match our newer local copy
+        return;
+      }
+
+      if (!serverData.schedule) serverData.schedule = [];
+      if (!serverData.bonus) serverData.bonus = [];
+      if (!serverData.attendance) serverData.attendance = [];
+      S = serverData;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+      render();
+    })
+    .catch(() => { /* offline — keep using localStorage copy */ });
+}
+
+function updateSyncBadge(ok) {
+  const el = document.getElementById('saveBadge');
+  if (!el) return;
+  el.textContent = ok ? '☁️ Synced' : '⚠️ Local only';
+  el.style.background = ok ? 'rgba(39,174,96,.12)' : 'rgba(231,76,60,.12)';
+  el.style.color = ok ? '#27ae60' : '#e74c3c';
+}
+
+let S = loadState();
+let CU = null; // current user
+let TAB = 'dashboard';
+let RCOMP = ''; // selected result comp
+
+/* ================================================================
+   UTILS
+   ================================================================ */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,7); }
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ================================================================
+   SAVE BADGE
+   ================================================================ */
+let saveBadgeTimer = null;
+function updateSaveBadge(saved) {
+  const el = document.getElementById('saveBadge');
+  if (!el) return;
+  el.textContent = saved ? '✅ Saved' : '💾 Saving...';
+  el.style.background = saved ? 'rgba(39,174,96,.12)' : 'rgba(243,156,18,.12)';
+  el.style.color = saved ? '#27ae60' : '#f39c12';
+  clearTimeout(saveBadgeTimer);
+  if (saved) saveBadgeTimer = setTimeout(() => { if(el) el.textContent = '💾 Auto-save ON'; }, 2000);
+}
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+function toast(msg, type='info') {
+  const c = document.getElementById('toasts');
+  if (!c) return;
+  const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const t = document.createElement('div');
+  t.className = 'toast toast-'+type;
+  t.innerHTML = icons[type]+' <span>'+msg+'</span>';
+  t.onclick = () => t.remove();
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(110%)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+/* ================================================================
+   QR CODE (SVG) — real, scannable QR codes via qrcode-generator lib
+   ================================================================ */
+const _qrCache = {};
+function qrSVG(text, size) {
+  size = size || 100;
+  if (_qrCache[text]) return _qrCache[text].replace(/W_H_PLACEHOLDER/g, size);
+  try {
+    const qr = qrcode(0, 'M'); // typeNumber 0 = auto-detect smallest size, 'M' = ~15% error correction
+    qr.addData(text);
+    qr.make();
+    const count = qr.getModuleCount();
+    const margin = 2; // quiet zone (modules)
+    const dim = count + margin * 2;
+    let path = '';
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (qr.isDark(r, c)) path += 'M'+(c+margin)+','+(r+margin)+'h1v1h-1z ';
+      }
+    }
+    const sv = '<svg xmlns="http://www.w3.org/2000/svg" width="W_H_PLACEHOLDER" height="W_H_PLACEHOLDER" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+
+      '<rect width="'+dim+'" height="'+dim+'" fill="white"/>'+
+      '<path d="'+path+'" fill="black"/>'+
+      '</svg>';
+    _qrCache[text] = sv;
+    return sv.replace(/W_H_PLACEHOLDER/g, size);
+  } catch (e) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'"><rect width="100%" height="100%" fill="#f5f5f5" stroke="#ccc"/><text x="50%" y="50%" font-size="7" text-anchor="middle" fill="#c00">QR error</text></svg>';
+  }
+}
+
+/* ================================================================
+   DATA HELPERS
+   ================================================================ */
+const gT = id => S.teams.find(t=>t.id===id);
+const gJ = id => S.judges.find(j=>j.id===id);
+const jComps = j => (!j.compIds||!j.compIds.length)?S.competitions:S.competitions.filter(c=>j.compIds.includes(c.id));
+const gS = id => S.students.find(s=>s.id===id);
+const gC = id => S.competitions.find(c=>c.id===id);
+const gCat = id => S.categories.find(c=>c.id===id);
+const gCatN = id => { const c=gCat(id); return c?c.name:id; };
+const tmSts = tid => S.students.filter(s=>s.teamId===tid);
+const tmStsByCat = (tid,cat) => S.students.filter(s=>s.teamId===tid&&s.category===cat);
+const compRegs = cid => S.registrations.filter(r=>r.compId===cid);
+const tmCompRegs = (tid,cid) => S.registrations.filter(r=>r.compId===cid&&(gS(r.studentId)||{}).teamId===tid);
+const stRegs = sid => S.registrations.filter(r=>r.studentId===sid);
+const stRes = sid => S.results.filter(r=>r.studentId===sid);
+const compRes = cid => S.results.filter(r=>r.compId===cid);
+const stCntByCat = cid => S.students.filter(s=>s.category===cid).length;
+const compCntByCat = cid => S.competitions.filter(c=>c.category===cid).length;
+
+function stProgInCat(sid,catId) {
+  return S.registrations.filter(r=>{if(r.studentId!==sid)return false;const c=gC(r.compId);return c&&c.category===catId;}).length;
+}
+function stGenProg(sid) {
+  return S.registrations.filter(r=>{if(r.studentId!==sid)return false;const c=gC(r.compId);return c&&c.category==='general';}).length;
+}
+
+/* ================================================================
+   POINTS
+   ================================================================ */
+function stPts(sid) {
+  let p=0;
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;p+=(r.points||0);});
+  return p;
+}
+function stStagePts(sid) {
+  let p=0;
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='stage')p+=(r.points||0);});
+  return p;
+}
+function stNonStagePts(sid) {
+  let p=0;
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='nonstage')p+=(r.points||0);});
+  return p;
+}
+function tmPts(tid) {
+  let p=0;
+  S.results.forEach(r=>{const st=gS(r.studentId);if(!st||st.teamId!==tid)return;p+=(r.points||0);});
+  S.bonus.forEach(b=>{if(b.teamId===tid)p+=b.points;});
+  return p;
+}
+function tmCatPts(tid,catId) {
+  let p=0;
+  S.results.forEach(r=>{
+    const st=gS(r.studentId);if(!st||st.teamId!==tid)return;
+    const c=gC(r.compId);if(!c)return;
+    if(c.category===catId||(c.category==='general'&&st.category===catId))p+=(r.points||0);
+  });
+  return p;
+}
+
+/* ================================================================
+   RENDER ROUTER
+   ================================================================ */
+function render() {
+  document.documentElement.setAttribute('data-theme', S.theme||'light');
+  document.documentElement.style.setProperty('--acc', S.config.accentColor||'#ff8c00');
+  document.title = S.config.eventName || (siteDomain()+' MEELAD PROGRAMME HELPER');
+  const _metaDesc = document.querySelector('meta[name="description"]');
+  if (_metaDesc) _metaDesc.setAttribute('content', (S.config.eventName||siteDomain())+' — Complete event management for '+(S.config.orgName||siteDomain()));
+  syncFavicon();
+
+  const params = new URLSearchParams(window.location.search);
+  const sp = params.get('student');
+  if (sp) { renderStudentPublic(sp); return; }
+  if (!CU) { renderLogin(); return; }
+  if (CU.type==='admin') renderAdmin();
+  else if (CU.type==='judge') renderJudge();
+  else renderTeam();
+}
+
+/* ================================================================
+   HELPERS: HEADER & FOOTER
+   ================================================================ */
+function footerH() {
+  return '<div class="footer">© 2026 <span class="brand">'+esc(siteDomain())+'</span></div>';
+}
+
+function syncFavicon() {
+  let link=document.querySelector('link[rel="icon"]');
+  if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}
+  if(S.config.logo){
+    link.href=S.config.logo;
+  } else {
+    const emoji=S.config.icon||'🕌';
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="72" font-size="70" text-anchor="middle">'+emoji+'</text></svg>';
+    link.href='data:image/svg+xml,'+encodeURIComponent(svg);
+  }
+}
+
+function headerH() {
+  return '<div class="header">'+
+    '<button class="hamburger" onclick="toggleSB()">☰</button>'+
+    (S.config.logo?'<img src="'+S.config.logo+'" class="logo-img" onerror="this.style.display=\'none\'">':'<div class="logo-placeholder">'+esc(S.config.icon||'🕌')+'</div>')+
+    '<div class="brand"><div class="title">'+esc(S.config.eventName)+'</div><div class="org">'+esc(S.config.orgName)+'</div></div>'+
+    '<div class="header-right">'+
+      '<span class="save-badge" id="saveBadge">💾 Auto-save ON</span>'+
+      '<button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme">'+(S.theme==='dark'?'☀️':'🌙')+'</button>'+
+      '<button class="btn-ghost" style="font-size:.8rem;padding:6px 14px" onclick="doLogout()">🚪 <span class="lbl">Logout</span></button>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ================================================================
+   MODAL HELPERS
+   ================================================================ */
+function showModal(title, body, onOk, okLabel) {
+  closeModal();
+  const ov = document.createElement('div');
+  ov.className='overlay'; ov.id='modalOv';
+  ov.innerHTML='<div class="modal glass"><h3>'+title+'</h3><div id="mBody">'+body+'</div><div class="modal-foot"><button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="mOk">'+(okLabel||'✅ Save')+'</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeModal();});
+  document.getElementById('mOk').onclick = async ()=>{ if(await onOk()!==false) closeModal(); };
+}
+
+function showInfo(body) {
+  closeModal();
+  const ov = document.createElement('div');
+  ov.className='overlay'; ov.id='modalOv';
+  ov.innerHTML='<div class="modal glass">'+body+'<div class="modal-foot"><button class="btn-primary" onclick="closeModal()">Close</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeModal();});
+}
+
+function closeModal() {
+  const el=document.getElementById('modalOv');
+  if(el)el.remove();
+}
+
+/* ================================================================
+   GLOBAL HANDLERS
+   ================================================================ */
+window.toggleTheme = function() {
+  S.theme = S.theme==='dark'?'light':'dark';
+  saveState(); render();
+};
+window.doLogout = function() { CU=null; TAB='dashboard'; RCOMP=''; render(); };
+window.toggleSB = function() { const sb=document.querySelector('.sidebar'); if(sb)sb.classList.toggle('open'); };
+window.setTab = function(tab) {
+  if (tab === 'poster') {
+    window.open('poster.html', '_blank');
+    document.querySelector('.sidebar')?.classList.remove('open');
+    return;
+  }
+  TAB=tab; RCOMP='';
+  document.querySelectorAll('.sidebar a').forEach(a=>a.classList.remove('active'));
+  const a=document.querySelector('.sidebar a[data-tab="'+tab+'"]');
+  if(a)a.classList.add('active');
+  document.querySelector('.sidebar')?.classList.remove('open');
+  renderMain();
+};
+window.closeModal = closeModal;
+
+/* ================================================================
+   LOGIN
+   ================================================================ */
+function renderLogin() {
+  const app = document.getElementById('app');
+  app.innerHTML =
+    '<div class="login-page">'+
+      '<div class="login-box glass">'+
+        '<div class="login-logo">'+(S.config.logo?'<img src="'+S.config.logo+'" style="height:68px;border-radius:14px;box-shadow:0 8px 30px rgba(255,140,0,.3)" onerror="this.style.display=\'none\'">':'<div class="login-logo-ph">'+esc(S.config.icon||'🕌')+'</div>')+'</div>'+
+        '<h2>'+esc(S.config.eventName)+'</h2>'+
+        '<p class="sub">'+esc(S.config.orgName)+'</p>'+
+        '<div class="ltabs">'+
+          '<div class="ltab active" id="ltTeam" onclick="switchLTab(\'team\')">👥 Team Login</div>'+
+          '<div class="ltab" id="ltJudge" onclick="switchLTab(\'judge\')">⚖️ Judge Login</div>'+
+          '<div class="ltab" id="ltAdmin" onclick="switchLTab(\'admin\')">🔧 Admin Login</div>'+
+        '</div>'+
+        '<div id="lform"></div>'+
+        '<div style="text-align:center;margin-top:18px">'+
+          '<button class="theme-btn" onclick="toggleTheme()">'+(S.theme==='dark'?'☀️':'🌙')+'</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  footerH();
+  showLForm('team');
+}
+
+window.switchLTab = function(tab) {
+  document.getElementById('ltTeam').className='ltab'+(tab==='team'?' active':'');
+  document.getElementById('ltJudge').className='ltab'+(tab==='judge'?' active':'');
+  document.getElementById('ltAdmin').className='ltab'+(tab==='admin'?' active':'');
+  showLForm(tab);
+};
+
+function showLForm(tab) {
+  const a = document.getElementById('lform');
+  if (!a) return;
+  if (tab==='team') {
+    a.innerHTML=
+      '<div class="fg"><label>Team Login ID</label><input id="lTId" placeholder="Enter team login ID" onkeydown="if(event.key===\'Enter\')doTeamLogin()"></div>'+
+      '<div class="fg"><label>Password</label><input id="lTPw" type="password" placeholder="Enter password" onkeydown="if(event.key===\'Enter\')doTeamLogin()"></div>'+
+      '<button class="btn-primary" style="width:100%;padding:13px;font-size:1rem;margin-top:8px" onclick="doTeamLogin()">Login as Team →</button>';
+  } else if (tab==='judge') {
+    a.innerHTML=
+      '<div class="fg"><label>Judge Login ID</label><input id="lJId" placeholder="Enter judge login ID" onkeydown="if(event.key===\'Enter\')doJudgeLogin()"></div>'+
+      '<div class="fg"><label>Password</label><input id="lJPw" type="password" placeholder="Enter password" onkeydown="if(event.key===\'Enter\')doJudgeLogin()"></div>'+
+      '<button class="btn-primary" style="width:100%;padding:13px;font-size:1rem;margin-top:8px" onclick="doJudgeLogin()">Login as Judge →</button>';
+  } else {
+    a.innerHTML=
+      '<div class="fg"><label>Admin Password</label><input id="lAPw" type="password" placeholder="Enter admin password" onkeydown="if(event.key===\'Enter\')doAdminLogin()"></div>'+
+      '<button class="btn-primary" style="width:100%;padding:13px;font-size:1rem;margin-top:8px" onclick="doAdminLogin()">Login as Admin →</button>';
+  }
+}
+
+window.doTeamLogin = function() {
+  const id=(document.getElementById('lTId')||{}).value?.trim();
+  const pw=(document.getElementById('lTPw')||{}).value;
+  const team = S.teams.find(t=>t.loginId===id&&t.password===pw);
+  if (!team) { toast('Invalid team credentials','error'); return; }
+  CU={type:'team',teamId:team.id}; TAB='dashboard';
+  render(); toast('Welcome, '+team.name+'! 👋','success');
+};
+
+window.doJudgeLogin = function() {
+  const id=(document.getElementById('lJId')||{}).value?.trim();
+  const pw=(document.getElementById('lJPw')||{}).value;
+  const judge = S.judges.find(j=>j.loginId===id&&j.password===pw);
+  if (!judge) { toast('Invalid judge credentials','error'); return; }
+  CU={type:'judge',judgeId:judge.id}; RCOMP='';
+  render(); toast('Welcome, '+judge.name+'! ⚖️','success');
+};
+
+window.doAdminLogin = function() {
+  const pw=(document.getElementById('lAPw')||{}).value;
+  if (pw!==S.config.adminPass) { toast('Wrong admin password','error'); return; }
+  CU={type:'admin'}; TAB='dashboard';
+  render(); toast('Welcome, Admin! 🎉','success');
+};
+
+/* ================================================================
+   ADMIN PORTAL
+   ================================================================ */
+function renderAdmin() {
+  const groups = [
+    {g:'Overview', tabs:[{id:'dashboard',ico:'📊',lbl:'Dashboard'},{id:'scoreboard',ico:'🏅',lbl:'Scoreboard'},{id:'topstudents',ico:'🌟',lbl:'Top Students'}]},
+    {g:'Management', tabs:[{id:'teams',ico:'👥',lbl:'Teams'},{id:'categories',ico:'📁',lbl:'Categories'},{id:'competitions',ico:'🏆',lbl:'Competitions'},{id:'allstudents',ico:'👤',lbl:'All Students'}]},
+    {g:'Event', tabs:[{id:'attendance',ico:'📋',lbl:'Attendance & Codes'},{id:'results',ico:'⚖️',lbl:'Judge Panel / Results'},{id:'judges',ico:'👨‍⚖️',lbl:'Judges'},{id:'bonus',ico:'💰',lbl:'Bonus / Minus'}]},
+    {g:'Tools', tabs:[{id:'search',ico:'🔍',lbl:'Search'},{id:'pdf',ico:'📄',lbl:'PDF Downloads'},{id:'poster',ico:'🏆',lbl:'Poster Generator'},{id:'importexport',ico:'💾',lbl:'Import / Export'},{id:'settings',ico:'⚙️',lbl:'Settings'}]}
+  ];
+
+  let sb='';
+  groups.forEach(gr=>{
+    sb+='<div class="sb-group">'+gr.g+'</div>';
+    gr.tabs.forEach(t=>{ sb+='<a href="#" data-tab="'+t.id+'" class="'+(TAB===t.id?'active':'')+'" onclick="setTab(\''+t.id+'\');return false"><span class="ico">'+t.ico+'</span>'+t.lbl+'</a>'; });
+  });
+
+  document.getElementById('app').innerHTML =
+    headerH()+
+    '<div class="sidebar" id="sidebar">'+sb+'</div>'+
+    '<div class="main" id="mc"></div>'+
+    footerH();
+  renderMain();
+}
+
+function renderMain() {
+  const mc = document.getElementById('mc');
+  if (!mc) return;
+  mc.style.animation='none'; mc.offsetHeight; mc.style.animation='fadeIn .35s ease';
+  if (CU?.type==='admin') adminTab(mc);
+  else if (CU?.type==='team') teamTab(mc);
+  else if (CU?.type==='judge') judgeTab(mc);
+}
+
+function adminTab(mc) {
+  const map={
+    dashboard:aDash, teams:aTeams, competitions:aComps,
+    attendance:aAttend, results:aResults, judges:aJudges, scoreboard:aScoreboard,
+    topstudents:aTopSts, allstudents:aAllSts, bonus:aBonus,
+    categories:aCats, search:aSearch, pdf:aPDF,
+    importexport:aImportExport, settings:aSettings
+  };
+  (map[TAB]||aDash)(mc);
+}
+
+/* ================================================================
+   ADMIN: DASHBOARD
+   ================================================================ */
+function aDash(mc) {
+  const sorted = S.teams.map(t=>({...t,pts:tmPts(t.id)})).sort((a,b)=>b.pts-a.pts);
+  mc.innerHTML=
+    '<div class="sh"><h2>📊 Dashboard</h2><span class="hint">'+S.teams.length+' teams · '+S.students.length+' students</span></div>'+
+    '<div class="stat-grid">'+
+      '<div class="stat-card glass"><div class="num">'+S.teams.length+'</div><div class="lbl">Teams</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+S.students.length+'</div><div class="lbl">Students</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+S.competitions.length+'</div><div class="lbl">Competitions</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+S.registrations.length+'</div><div class="lbl">Registrations</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+S.results.length+'</div><div class="lbl">Results</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+(S.locked?'🔒':'🔓')+'</div><div class="lbl">'+(S.locked?'Locked':'Open')+'</div></div>'+
+    '</div>'+
+    '<h3 style="margin-bottom:12px">📁 Category-wise Students</h3>'+
+    '<div class="stat-grid">'+S.categories.map(c=>'<div class="stat-card glass"><div class="num">'+stCntByCat(c.id)+'</div><div class="lbl">'+esc(c.name)+'</div></div>').join('')+'</div>'+
+    '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+      '<button class="'+(S.locked?'btn-success':'btn-warning')+'" onclick="toggleLock()">'+(S.locked?'🔓 Unlock Team Portal':'🔒 Lock Team Portal')+'</button>'+
+    '</div>'+
+    (sorted.length?
+      '<h3 style="margin:24px 0 12px">🏅 Quick Scoreboard</h3>'+
+      '<div class="tbl-wrap glass"><table>'+
+        '<thead><tr><th>Rank</th><th>Team</th><th>Students</th>'+
+        S.categories.filter(c=>c.id!=='general').map(c=>'<th>'+esc(c.name)+'</th>').join('')+
+        '<th>Total</th></tr></thead><tbody>'+
+        sorted.map((t,i)=>'<tr>'+
+          '<td><strong>'+(i<3?['🥇','🥈','🥉'][i]:'#'+(i+1))+'</strong></td>'+
+          '<td><strong>'+esc(t.name)+'</strong></td>'+
+          '<td>'+tmSts(t.id).length+'</td>'+
+          S.categories.filter(c=>c.id!=='general').map(c=>'<td>'+tmCatPts(t.id,c.id)+'</td>').join('')+
+          '<td><span class="badge bpt">'+t.pts+'</span></td>'+
+        '</tr>').join('')+
+      '</tbody></table></div>'
+    :'');
+}
+
+window.toggleLock = function() {
+  S.locked=!S.locked; saveState();
+  toast(S.locked?'🔒 Portal locked!':'🔓 Portal unlocked!','success');
+  renderMain();
+};
+
+/* ================================================================
+   ADMIN: TEAMS
+   ================================================================ */
+function aTeams(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>👥 Teams</h2></div>'+
+    '<button class="btn-primary" onclick="openTeamModal()" style="margin-bottom:16px">+ Add Team</button>'+
+    '<div class="tbl-wrap glass"><table>'+
+      '<thead><tr><th>Name</th><th>Login ID</th><th>Password</th><th>Students</th><th>Points</th><th>Actions</th></tr></thead>'+
+      '<tbody>'+
+        (S.teams.length?S.teams.map(t=>
+          '<tr>'+
+            '<td><strong>'+esc(t.name)+'</strong></td>'+
+            '<td><code>'+esc(t.loginId)+'</code></td>'+
+            '<td><code style="color:var(--t3)">'+esc(t.password)+'</code></td>'+
+            '<td>'+tmSts(t.id).length+'</td>'+
+            '<td><span class="badge bpt">'+tmPts(t.id)+'</span></td>'+
+            '<td style="white-space:nowrap">'+
+              '<button class="eye-btn" onclick="openTeamModal(\''+t.id+'\')">✏️ Edit</button> '+
+              '<button class="btn-danger" onclick="delTeam(\''+t.id+'\')" style="font-size:.8rem;padding:5px 12px">🗑️</button>'+
+            '</td>'+
+          '</tr>').join(''):
+          '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:32px">No teams yet. Click "+ Add Team" to get started.</td></tr>')+
+      '</tbody></table></div>';
+}
+
+window.openTeamModal = function(eid) {
+  const t = eid?gT(eid):null;
+  showModal(t?'Edit Team':'Add Team',
+    '<div class="fg"><label>Team Name</label><input id="mTN" value="'+(t?esc(t.name):'')+'" placeholder="e.g. Al Farooq"></div>'+
+    '<div class="fg"><label>Login ID (unique)</label><input id="mTL" value="'+(t?esc(t.loginId):'')+'" placeholder="e.g. team01"></div>'+
+    '<div class="fg"><label>Password</label><input id="mTP" value="'+(t?esc(t.password):'')+'" placeholder="Password for this team"></div>',
+  function() {
+    const nm=document.getElementById('mTN').value.trim();
+    const li=document.getElementById('mTL').value.trim();
+    const pw=document.getElementById('mTP').value.trim();
+    if(!nm||!li||!pw){toast('Fill all fields','error');return false;}
+    if(S.teams.find(x=>x.loginId===li&&(!eid||x.id!==eid))){toast('Login ID already taken','error');return false;}
+    if(eid){Object.assign(t,{name:nm,loginId:li,password:pw});}
+    else S.teams.push({id:uid(),name:nm,loginId:li,password:pw});
+    saveState();renderMain();toast('Team saved! 💾','success');
+  });
+};
+
+window.delTeam = function(id) {
+  if(!confirm('Delete this team and ALL its students, registrations, results?'))return;
+  const sids=tmSts(id).map(s=>s.id);
+  S.students=S.students.filter(s=>s.teamId!==id);
+  S.registrations=S.registrations.filter(r=>!sids.includes(r.studentId));
+  S.attendance=S.attendance.filter(a=>!sids.includes(a.studentId));
+  S.results=S.results.filter(r=>!sids.includes(r.studentId));
+  S.bonus=S.bonus.filter(b=>b.teamId!==id);
+  S.teams=S.teams.filter(t=>t.id!==id);
+  saveState();renderMain();toast('Team deleted','success');
+};
+
+/* ================================================================
+   ADMIN: JUDGES
+   ================================================================ */
+function aJudges(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>👨‍⚖️ Judges</h2></div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Give each judge their own login so they can score competitions directly — no need to hand them the admin password. Assign specific competitions, or leave none checked to give them access to all competitions.</div>'+
+    '<button class="btn-primary" onclick="openJudgeModal()" style="margin-bottom:16px">+ Add Judge</button>'+
+    '<div class="tbl-wrap glass"><table>'+
+      '<thead><tr><th>Name</th><th>Login ID</th><th>Password</th><th>Assigned Competitions</th><th>Actions</th></tr></thead>'+
+      '<tbody>'+
+        (S.judges.length?S.judges.map(j=>
+          '<tr>'+
+            '<td><strong>'+esc(j.name)+'</strong></td>'+
+            '<td><code>'+esc(j.loginId)+'</code></td>'+
+            '<td><code style="color:var(--t3)">'+esc(j.password)+'</code></td>'+
+            '<td>'+(j.compIds&&j.compIds.length?j.compIds.map(id=>{const c=gC(id);return c?'<span class="badge bc" style="margin:2px">'+esc(c.name)+'</span>':'';}).join(''):'<span style="color:var(--t3)">All competitions</span>')+'</td>'+
+            '<td style="white-space:nowrap">'+
+              '<button class="eye-btn" onclick="openJudgeModal(\''+j.id+'\')">✏️ Edit</button> '+
+              '<button class="btn-danger" onclick="delJudge(\''+j.id+'\')" style="font-size:.8rem;padding:5px 12px">🗑️</button>'+
+            '</td>'+
+          '</tr>').join(''):
+          '<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:32px">No judges yet. Click "+ Add Judge" to get started.</td></tr>')+
+      '</tbody></table></div>';
+}
+
+window.openJudgeModal = function(eid) {
+  const j = eid?gJ(eid):null;
+  showModal(j?'Edit Judge':'Add Judge',
+    '<div class="fg"><label>Judge Name</label><input id="mJN" value="'+(j?esc(j.name):'')+'" placeholder="e.g. Ustad Ahmed"></div>'+
+    '<div class="fg"><label>Login ID (unique)</label><input id="mJL" value="'+(j?esc(j.loginId):'')+'" placeholder="e.g. judge01"></div>'+
+    '<div class="fg"><label>Password</label><input id="mJP" value="'+(j?esc(j.password):'')+'" placeholder="Password for this judge"></div>'+
+    '<div class="fg"><label>Assigned Competitions (leave all unchecked = access to all)</label>'+
+      '<div style="max-height:220px;overflow-y:auto;border:1.5px solid var(--brd);border-radius:10px;padding:10px">'+
+        (S.competitions.length?S.competitions.map(c=>
+          '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;font-size:.85rem">'+
+            '<input type="checkbox" class="mJC" value="'+c.id+'" '+(j&&j.compIds&&j.compIds.includes(c.id)?'checked':'')+'> '+esc(c.name)+
+          '</label>').join(''):
+          '<span style="color:var(--t3);font-size:.85rem">No competitions created yet</span>')+
+      '</div>'+
+    '</div>',
+  function() {
+    const nm=document.getElementById('mJN').value.trim();
+    const li=document.getElementById('mJL').value.trim();
+    const pw=document.getElementById('mJP').value.trim();
+    const compIds=Array.from(document.querySelectorAll('.mJC:checked')).map(el=>el.value);
+    if(!nm||!li||!pw){toast('Fill all fields','error');return false;}
+    if(S.judges.find(x=>x.loginId===li&&(!eid||x.id!==eid))){toast('Login ID already taken','error');return false;}
+    if(eid){Object.assign(j,{name:nm,loginId:li,password:pw,compIds});}
+    else S.judges.push({id:uid(),name:nm,loginId:li,password:pw,compIds});
+    saveState();renderMain();toast('Judge saved! 💾','success');
+  });
+};
+
+window.delJudge = function(id) {
+  if(!confirm('Delete this judge login?'))return;
+  S.judges=S.judges.filter(j=>j.id!==id);
+  saveState();renderMain();toast('Judge deleted','success');
+};
+
+/* ================================================================
+   ADMIN: COMPETITIONS
+   ================================================================ */
+function aComps(mc) {
+  let flt='all';
+  function draw() {
+    const cats=[{id:'all',name:'All'},...S.categories];
+    const list=flt==='all'?S.competitions:S.competitions.filter(c=>c.category===flt);
+    mc.innerHTML=
+      '<div class="sh"><h2>🏆 Competitions</h2></div>'+
+      '<button class="btn-primary" onclick="openCompModal()" style="margin-bottom:16px">+ Add Competition</button>'+
+      '<div class="tabs">'+cats.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-cf="'+c.id+'">'+esc(c.name)+'</div>').join('')+'</div>'+
+      '<div class="stat-grid">'+
+        list.map(c=>{
+          const rc=compRegs(c.id).length,rr=compRes(c.id).length;
+          return '<div class="glass" style="padding:18px">'+
+            '<div style="font-weight:800;margin-bottom:10px">'+esc(c.name)+'</div>'+
+            '<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px">'+
+              '<span class="badge bc">'+gCatN(c.category)+'</span>'+
+              (c.isGroup?'<span class="badge bg2">Group('+c.groupSize+')</span>':'<span class="badge bc">Individual</span>')+
+              '<span class="badge '+(c.type==='stage'?'bst':'bns')+'">'+(c.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
+            '</div>'+
+            '<div style="font-size:.8rem;color:var(--t3);margin-bottom:10px">Max/Team: '+c.maxPerTeam+' | Regs: '+rc+' | Results: '+rr+'</div>'+
+            '<div style="display:flex;gap:6px">'+
+              '<button class="eye-btn" onclick="viewCompParts(\''+c.id+'\')">👁️</button>'+
+              '<button class="eye-btn" onclick="openCompModal(\''+c.id+'\')">✏️</button>'+
+              '<button class="btn-danger" onclick="delComp(\''+c.id+'\')" style="font-size:.78rem;padding:5px 10px">🗑️</button>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+        (list.length?'':'<div class="empty glass" style="grid-column:1/-1"><div class="ei">🏆</div><p>No competitions in this category</p></div>')+
+      '</div>';
+    mc.querySelectorAll('[data-cf]').forEach(tab=>{tab.onclick=()=>{flt=tab.dataset.cf;draw();};});
+  }
+  draw();
+}
+
+window.openCompModal = function(eid) {
+  const c=eid?gC(eid):null;
+  showModal(c?'Edit Competition':'Add Competition',
+    '<div class="fg"><label>Competition Name</label><input id="mCN" value="'+(c?esc(c.name):'')+'" placeholder="e.g. Arabic Elocution"></div>'+
+    '<div class="fg"><label>Category</label><select id="mCC">'+S.categories.map(cat=>'<option value="'+cat.id+'"'+(c&&c.category===cat.id?' selected':'')+'>'+esc(cat.name)+'</option>').join('')+'</select></div>'+
+    '<div class="fg-row">'+
+      '<div class="fg"><label>Max Per Team</label><input type="number" id="mCM" value="'+(c?c.maxPerTeam:3)+'" min="1"></div>'+
+      '<div class="fg"><label>Type</label><select id="mCT"><option value="stage"'+(c&&c.type==='stage'?' selected':'')+'>🎭 Stage</option><option value="nonstage"'+(c&&c.type==='nonstage'?' selected':'')+'>📝 Non-Stage</option></select></div>'+
+    '</div>'+
+    '<div class="fg"><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:.9rem"><input type="checkbox" id="mCG"'+(c&&c.isGroup?' checked':'')+' style="width:16px;height:16px"> Group Competition</label></div>'+
+    '<div class="fg" id="mGSW" style="display:'+(c&&c.isGroup?'block':'none')+'"><label>Group Size</label><input type="number" id="mCGS" value="'+(c?c.groupSize||2:2)+'" min="2"></div>',
+  function() {
+    const nm=document.getElementById('mCN').value.trim();
+    if(!nm){toast('Enter competition name','error');return false;}
+    const data={name:nm,category:document.getElementById('mCC').value,maxPerTeam:parseInt(document.getElementById('mCM').value)||1,type:document.getElementById('mCT').value,isGroup:document.getElementById('mCG').checked,groupSize:parseInt(document.getElementById('mCGS').value)||2};
+    if(eid)Object.assign(c,data);
+    else S.competitions.push({id:uid(),...data});
+    saveState();renderMain();toast('Competition saved! 💾','success');
+  });
+  setTimeout(()=>{
+    const cb=document.getElementById('mCG');
+    if(cb)cb.onchange=()=>{document.getElementById('mGSW').style.display=cb.checked?'block':'none';};
+  },80);
+};
+
+window.delComp = function(id) {
+  if(!confirm('Delete this competition and all related data?'))return;
+  S.registrations=S.registrations.filter(r=>r.compId!==id);
+  S.attendance=S.attendance.filter(a=>a.compId!==id);
+  S.results=S.results.filter(r=>r.compId!==id);
+  S.competitions=S.competitions.filter(c=>c.id!==id);
+  saveState();renderMain();toast('Competition deleted','success');
+};
+
+window.viewCompParts = function(cid) {
+  const comp=gC(cid);if(!comp)return;
+  const regs=compRegs(cid),res=compRes(cid);
+  let h='<h3>👁️ '+esc(comp.name)+' — All Participants</h3>'+
+    '<p style="color:var(--t3);margin-bottom:14px">'+gCatN(comp.category)+' | '+regs.length+' registered</p>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Chest</th><th>Name</th><th>Team</th><th>Category</th><th>Result</th></tr></thead><tbody>';
+  regs.forEach((r,i)=>{
+    const st=gS(r.studentId);if(!st)return;
+    const tm=gT(st.teamId);
+    const result=res.find(x=>x.studentId===r.studentId);
+    h+='<tr><td>'+(i+1)+'</td><td><span class="badge bpt">'+esc(st.chest)+'</span></td><td>'+esc(st.name)+'</td><td>'+(tm?esc(tm.name):'-')+'</td><td><span class="badge bc">'+gCatN(st.category)+'</span></td><td>'+(result?'P'+result.position+' ('+result.points+'pts)'+(result.grade?' '+result.grade:''):'-')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  showInfo(h);
+};
+
+/* ================================================================
+   ADMIN: ATTENDANCE
+   ================================================================ */
+function aAttend(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>📋 Attendance & Code Letters</h2></div>'+
+    '<div class="fg" style="max-width:400px"><label>Select Competition</label>'+
+    '<select id="attSel"><option value="">-- Choose a competition --</option>'+
+    S.competitions.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' ('+gCatN(c.category)+')</option>').join('')+
+    '</select></div><div id="attArea"></div>';
+  document.getElementById('attSel').onchange=function(){
+    if(!this.value){document.getElementById('attArea').innerHTML='';return;}
+    drawAttend(this.value);
+  };
+}
+
+function drawAttend(cid) {
+  const regs=compRegs(cid);
+  const area=document.getElementById('attArea');
+  let h='<button class="btn-primary" onclick="autoCode(\''+cid+'\')" style="margin-bottom:14px">🔤 Auto A-Z (Present Students)</button>'+
+    '<div class="tbl-wrap glass"><table><thead><tr><th>#</th><th>Chest</th><th>Name</th><th>Team</th><th>Present</th><th>Code Letter</th><th>QR</th></tr></thead><tbody>';
+  regs.forEach((r,i)=>{
+    const st=gS(r.studentId);if(!st)return;
+    const tm=gT(st.teamId);
+    const att=S.attendance.find(a=>a.compId===cid&&a.studentId===r.studentId)||{};
+    h+='<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td><span class="badge bpt">'+esc(st.chest)+'</span></td>'+
+      '<td><strong>'+esc(st.name)+'</strong></td>'+
+      '<td>'+(tm?esc(tm.name):'-')+'</td>'+
+      '<td><input type="checkbox" '+(att.present?'checked':'')+' onchange="updAtt(\''+cid+'\',\''+r.studentId+'\',\'present\',this.checked)"></td>'+
+      '<td><input style="width:68px" value="'+(att.code||'')+'" onchange="updAtt(\''+cid+'\',\''+r.studentId+'\',\'code\',this.value)"></td>'+
+      '<td style="width:54px">'+qrSVG(location.origin+location.pathname+'?student='+st.id,46)+'</td>'+
+    '</tr>';
+  });
+  h+='</tbody></table></div>';
+  area.innerHTML=h;
+}
+
+window.updAtt = function(cid,sid,field,val) {
+  let att=S.attendance.find(a=>a.compId===cid&&a.studentId===sid);
+  if(!att){att={id:uid(),compId:cid,studentId:sid,present:false,code:''};S.attendance.push(att);}
+  att[field]=val; saveState();
+};
+
+window.autoCode = function(cid) {
+  const regs=compRegs(cid);let code=65;
+  regs.forEach(r=>{
+    let att=S.attendance.find(a=>a.compId===cid&&a.studentId===r.studentId);
+    if(!att){att={id:uid(),compId:cid,studentId:r.studentId,present:false,code:''};S.attendance.push(att);}
+    if(att.present){att.code=String.fromCharCode(code);code++;if(code>90)code=65;}
+  });
+  saveState();drawAttend(cid);toast('Code letters assigned! ✅','success');
+};
+
+/* ================================================================
+   ADMIN: RESULTS
+   ================================================================ */
+function aResults(mc) {
+  if (!RCOMP) {
+    mc.innerHTML=
+      '<div class="sh"><h2>⚖️ Judge Panel / Results</h2></div>'+
+      '<div class="sbox" style="max-width:400px"><input placeholder="Search competitions..." id="resSearch" autofocus></div>'+
+      '<h3 style="margin:20px 0 12px">All Competitions</h3>'+
+      '<div class="stat-grid" id="resGrid">'+
+        S.competitions.map(c=>{
+          const r=compRes(c.id);
+          return '<div class="glass res-card" data-name="'+esc(c.name.toLowerCase())+'" style="padding:18px;cursor:pointer" onclick="RCOMP=\''+c.id+'\';renderMain()" onmouseenter="this.style.transform=\'translateY(-4px)\'" onmouseleave="this.style.transform=\'\'">'+
+            '<div style="font-weight:800;margin-bottom:8px">'+esc(c.name)+'</div>'+
+            '<span class="badge bc">'+gCatN(c.category)+'</span>'+
+            '<div style="margin-top:10px;font-size:.83rem;color:var(--t3)">'+r.length+' results</div>'+
+            '<div style="margin-top:8px"><span class="badge '+(r.length?'bok':'bwn')+'">'+(r.length?'Has results':'No results yet')+'</span></div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div id="resNoMatch" style="display:none;text-align:center;color:var(--t3);padding:30px">No competitions match your search.</div>';
+    document.getElementById('resSearch').oninput=function(){filterResCards(this.value,'resGrid','resNoMatch');};
+  } else {
+    drawResults(mc, RCOMP);
+  }
+}
+
+function filterResCards(q,gridId,noMatchId){
+  q=q.trim().toLowerCase();
+  const cards=document.querySelectorAll('#'+gridId+' .res-card');
+  let shown=0;
+  cards.forEach(el=>{
+    const match=!q||el.getAttribute('data-name').includes(q);
+    el.style.display=match?'':'none';
+    if(match)shown++;
+  });
+  const nm=document.getElementById(noMatchId);
+  if(nm)nm.style.display=shown?'none':'';
+}
+
+function posLabel(p){
+  const n=parseInt(p);
+  if(n===1)return '🥇 1st';
+  if(n===2)return '🥈 2nd';
+  if(n===3)return '🥉 3rd';
+  if(!isNaN(n))return n+'th';
+  return '-';
+}
+
+function drawResults(mc, cid) {
+  const comp=gC(cid);if(!comp){RCOMP='';renderMain();return;}
+  const isJudge=CU?.type==='judge';
+  let judgeObj=null;
+  if(isJudge){
+    judgeObj=gJ(CU.judgeId);
+    if(!judgeObj){doLogout();return;}
+    if(!jComps(judgeObj).some(c=>c.id===cid)){RCOMP='';renderMain();return;}
+  }
+  const regs=compRegs(cid),results=compRes(cid);
+  const resBySid={};results.forEach(r=>resBySid[r.studentId]=r);
+  const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
+  const lastJudge=isJudge?judgeObj.name:(results.length?(results[0].judge||''):'');
+  const ranked=results.slice().filter(r=>r.position).sort((a,b)=>(parseInt(a.position)||99)-(parseInt(b.position)||99));
+
+  mc.innerHTML=
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap">'+
+      '<button class="btn-ghost" onclick="RCOMP=\'\';renderMain()">← Back to '+(isJudge?'My Competitions':'All')+'</button>'+
+      '<h2>⚖️ '+esc(comp.name)+'</h2>'+
+      '<span class="badge bc">'+gCatN(comp.category)+'</span>'+
+      '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
+    '</div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Enter points (and grade, optional) for each participant below, then Save. 1st, 2nd, 3rd... positions are calculated automatically — highest points gets 1st place. Leave points empty to skip a student for now.</div>'+
+    '<div class="glass" style="padding:16px;margin-bottom:16px;max-width:320px">'+
+      '<div class="fg" style="margin-bottom:0"><label>Judge Name'+(isJudge?'':' (applies to all)')+'</label><input id="rJdgAll" '+(isJudge?'disabled':'')+' placeholder="Judge name" value="'+esc(lastJudge)+'"></div>'+
+    '</div>'+
+    '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th><th style="width:100px">Points</th><th style="width:100px">Grade</th><th style="width:90px">Position</th></tr></thead><tbody>'+
+      regSts.map(s=>{
+        const tm=gT(s.teamId);
+        const r=resBySid[s.id];
+        return '<tr>'+
+          '<td><span class="badge bpt">'+esc(s.chest)+'</span></td>'+
+          '<td><strong>'+esc(s.name)+'</strong></td>'+
+          '<td style="color:var(--t3)">'+(tm?esc(tm.name):'-')+'</td>'+
+          '<td><input type="number" id="pts_'+s.id+'" value="'+(r?r.points:'')+'" placeholder="0" style="width:80px"></td>'+
+          '<td><input id="grd_'+s.id+'" value="'+(r?esc(r.grade||''):'')+'" placeholder="A+" style="width:80px"></td>'+
+          '<td id="pos_'+s.id+'" style="font-weight:700">'+(r?posLabel(r.position):'-')+'</td>'+
+        '</tr>';
+      }).join('')+
+      (regSts.length?'':'<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px">No participants registered for this competition</td></tr>')+
+    '</tbody></table></div>'+
+    (regSts.length?'<button class="btn-success" style="margin-top:16px" onclick="saveAllRes(\''+cid+'\')">💾 Save &amp; Auto-Rank</button>':'')+
+    (ranked.length?'<h3 style="margin:26px 0 12px">🏅 Current Rankings</h3><div id="resList">'+
+      ranked.map(r=>{
+        const st=gS(r.studentId),tm=st?gT(st.teamId):null;
+        return '<div class="ritem">'+
+          '<span class="badge bpt">'+(st?esc(st.chest):'?')+'</span>'+
+          '<strong>'+posLabel(r.position)+'</strong>'+
+          '<span>'+(st?esc(st.name):'Unknown')+'</span>'+
+          '<span style="color:var(--t3)">'+(tm?esc(tm.name):'')+'</span>'+
+          '<span class="badge bpt">'+r.points+' pts</span>'+
+          (r.grade?'<span class="badge bgd">'+esc(r.grade)+'</span>':'')+
+          (r.judge?'<span style="font-size:.77rem;color:var(--t3)">⚖️ '+esc(r.judge)+'</span>':'')+
+        '</div>';
+      }).join('')+
+    '</div>':'');
+}
+
+window.saveAllRes = function(cid) {
+  const regs=compRegs(cid);
+  const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
+  const judge=(document.getElementById('rJdgAll').value||'').trim();
+  const entries=[];
+  regSts.forEach(s=>{
+    const ptsEl=document.getElementById('pts_'+s.id);
+    const grdEl=document.getElementById('grd_'+s.id);
+    const ptsVal=(ptsEl.value||'').trim();
+    if(ptsVal===''){
+      S.results=S.results.filter(r=>!(r.compId===cid&&r.studentId===s.id));
+      return;
+    }
+    entries.push({sid:s.id,points:parseInt(ptsVal)||0,grade:(grdEl.value||'').trim()});
+  });
+  if(!entries.length){toast('Enter points for at least one participant','error');return;}
+  entries.sort((a,b)=>b.points-a.points);
+  entries.forEach((e,i)=>{
+    e.position=(i>0&&e.points===entries[i-1].points)?entries[i-1].position:(i+1);
+  });
+  entries.forEach(e=>{
+    let r=S.results.find(x=>x.compId===cid&&x.studentId===e.sid);
+    if(!r){r={id:uid(),compId:cid,studentId:e.sid};S.results.push(r);}
+    r.points=e.points;r.grade=e.grade;r.judge=judge;r.position=e.position;
+  });
+  saveState();toast('Results saved — positions auto-ranked 🏅','success');renderMain();
+};
+
+/* ================================================================
+   ADMIN: SCOREBOARD
+   ================================================================ */
+function aScoreboard(mc) {
+  let flt='overall';
+  function draw() {
+    const cats=[{id:'overall',name:'Overall'},...S.categories];
+    const teams=S.teams.map(t=>({...t,pts:flt==='overall'?tmPts(t.id):tmCatPts(t.id,flt)})).sort((a,b)=>b.pts-a.pts);
+    const colors=['#ff6584','#8e44ad','#27ae60','#f39c12','#3498db','#e74c3c','gold','#9b59b6'];
+    let cft='';
+    for(let i=0;i<30;i++)cft+='<div class="cft" style="left:'+Math.random()*100+'%;background:'+colors[i%colors.length]+';animation-delay:'+Math.random()*5+'s;animation-duration:'+(3+Math.random()*4)+'s;width:'+(6+Math.random()*10)+'px;height:'+(6+Math.random()*10)+'px;border-radius:'+(Math.random()>.5?'50%':'3px')+'"></div>';
+    mc.innerHTML=cft+
+      '<div class="sh"><h2>🏅 Scoreboard</h2></div>'+
+      '<div class="tabs">'+cats.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-sb="'+c.id+'">'+esc(c.name)+'</div>').join('')+'</div>'+
+      '<div class="ribbon">🏆 '+(flt==='overall'?'Overall':gCatN(flt))+' Rankings 🏆</div>'+
+      teams.map((t,i)=>{
+        const cls=i===0?'top1':i===1?'top2':i===2?'top3':'';
+        return '<div class="rank-card glass '+cls+'" style="animation:fadeIn '+(0.3+i*.08)+'s ease">'+
+          '<div class="rank-icon">'+(i<3?['🥇','🥈','🥉'][i]:'#'+(i+1))+'</div>'+
+          '<div><strong style="font-size:1.1rem">'+esc(t.name)+'</strong><br><span style="font-size:.79rem;color:var(--t3)">'+tmSts(t.id).length+' students</span></div>'+
+          '<div class="rank-pts">'+t.pts+'</div>'+
+        '</div>';
+      }).join('')+
+      '<div class="divider"></div><h3 style="margin-bottom:16px">🎖️ Prathiba Awards</h3>'+
+      buildPrathiba(flt);
+    mc.querySelectorAll('[data-sb]').forEach(tab=>{tab.onclick=()=>{flt=tab.dataset.sb;draw();};});
+  }
+  draw();
+}
+
+function buildPrathiba(flt) {
+  const catList=flt==='overall'?S.categories.filter(c=>c.id!=='general'):[gCat(flt)].filter(Boolean).filter(c=>c.id!=='general');
+  let h='';
+  catList.forEach(cat=>{
+    const sts=S.students.filter(s=>s.category===cat.id);
+    let topS=null,topN=null,mxS=0,mxN=0;
+    sts.forEach(s=>{
+      const sp=stStagePts(s.id),np=stNonStagePts(s.id);
+      if(sp>mxS){mxS=sp;topS=s;}
+      if(np>mxN){mxN=np;topN=s;}
+    });
+    h+='<div style="margin-bottom:8px;font-weight:800;color:var(--t2);font-size:1rem">'+esc(cat.name)+'</div>';
+    if(topS&&mxS>0){const tm=gT(topS.teamId);h+='<div class="pcard">🎭<div style="margin-left:8px"><strong>Sargha Prathiba</strong><br>'+esc(topS.name)+' <span class="badge bpt">'+esc(topS.chest)+'</span> '+(tm?esc(tm.name):'')+' — <strong class="grad">'+mxS+' pts</strong></div></div>';}
+    if(topN&&mxN>0){const tm=gT(topN.teamId);h+='<div class="pcard">📝<div style="margin-left:8px"><strong>Kala Prathiba</strong><br>'+esc(topN.name)+' <span class="badge bpt">'+esc(topN.chest)+'</span> '+(tm?esc(tm.name):'')+' — <strong class="grad">'+mxN+' pts</strong></div></div>';}
+  });
+  return h||'<p style="color:var(--t3)">No results yet</p>';
+}
+
+/* ================================================================
+   ADMIN: TOP STUDENTS
+   ================================================================ */
+function aTopSts(mc) {
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  let flt=nonGen[0]?.id||'';
+  function draw() {
+    mc.innerHTML=
+      '<div class="sh"><h2>🌟 Top Students</h2></div>'+
+      '<div class="tabs">'+nonGen.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-ts="'+c.id+'">'+esc(c.name)+'</div>').join('')+'</div>'+
+      buildTopSec(flt);
+    mc.querySelectorAll('[data-ts]').forEach(t=>{t.onclick=()=>{flt=t.dataset.ts;draw();};});
+  }
+  draw();
+}
+
+function buildTopSec(catId) {
+  const sts=S.students.filter(s=>s.category===catId);
+  const overall=sts.map(s=>({...s,pts:stPts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
+  const stage=sts.map(s=>({...s,pts:stStagePts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
+  const nonstage=sts.map(s=>({...s,pts:stNonStagePts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
+  function rl(title,ico,list){
+    return '<div class="glass" style="padding:20px;margin-bottom:16px"><h3 style="margin-bottom:12px">'+ico+' '+title+'</h3>'+
+      (list.filter(s=>s.pts>0).map((s,i)=>{
+        const tm=gT(s.teamId);
+        const ri=i<3?['🥇','🥈','🥉'][i]:'#'+(i+1);
+        return '<div class="rank-card" style="padding:10px">'+
+          '<span style="font-size:1.2rem">'+ri+'</span><strong>'+esc(s.name)+'</strong>'+
+          '<span class="badge bpt">'+esc(s.chest)+'</span>'+
+          '<span style="color:var(--t3)">'+(tm?esc(tm.name):'')+'</span>'+
+          '<span class="badge bpt" style="margin-left:auto">'+s.pts+'</span>'+
+        '</div>';
+      }).join('')||'<p style="color:var(--t3);padding:12px">No results yet</p>')+
+    '</div>';
+  }
+  return rl('Overall Top 15','🏆',overall)+rl('Stage (Sargha Prathiba)','🎭',stage)+rl('Non-Stage (Kala Prathiba)','📝',nonstage);
+}
+
+/* ================================================================
+   ADMIN: ALL STUDENTS
+   ================================================================ */
+function aAllSts(mc) {
+  let flt='all', q='';
+  function draw() {
+    const cats=[{id:'all',name:'All'},...S.categories];
+    let list=flt==='all'?[...S.students]:S.students.filter(s=>s.category===flt);
+    if(q){const qq=q.toLowerCase();list=list.filter(s=>{const tm=gT(s.teamId);return s.name.toLowerCase().includes(qq)||s.chest.toLowerCase().includes(qq)||(tm&&tm.name.toLowerCase().includes(qq));});}
+    mc.innerHTML=
+      '<div class="sh"><h2>👤 All Students ('+list.length+')</h2></div>'+
+      '<button class="btn-primary" onclick="dlAllTeamsPDF()" style="margin-bottom:14px">📄 All Teams PDF</button> '+
+      '<button class="btn-secondary" id="btnCardsAll" style="margin-bottom:14px">🪪 Print Chest Cards ('+list.length+')</button>'+
+      '<div class="tabs">'+cats.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-asf="'+c.id+'">'+esc(c.name)+' ('+(c.id==='all'?S.students.length:stCntByCat(c.id))+')</div>').join('')+'</div>'+
+      '<div class="sbox"><input placeholder="Search by name, chest, or team..." value="'+esc(q)+'" id="asq"></div>'+
+      '<div class="tbl-wrap glass"><table>'+
+        '<thead><tr><th>Chest</th><th>Name</th><th>Category</th><th>Team</th><th>Competitions</th><th>Points</th><th></th></tr></thead>'+
+        '<tbody>'+
+          list.map(s=>{
+            const tm=gT(s.teamId);
+            const comps=stRegs(s.id).map(r=>{const c=gC(r.compId);return c?'<span class="chip">'+esc(c.name)+'</span>':'';}).join('');
+            return '<tr>'+
+              '<td><span class="badge bpt">'+esc(s.chest)+'</span></td>'+
+              '<td><strong>'+esc(s.name)+'</strong></td>'+
+              '<td><span class="badge bc">'+gCatN(s.category)+'</span></td>'+
+              '<td>'+(tm?esc(tm.name):'-')+'</td>'+
+              '<td>'+(comps||'<span style="color:var(--t3)">—</span>')+'</td>'+
+              '<td><span class="badge bpt">'+stPts(s.id)+'</span></td>'+
+              '<td style="white-space:nowrap"><button class="eye-btn" onclick="showStModal(\''+s.id+'\')">👁️</button> <button class="eye-btn" onclick="printChestCard(\''+s.id+'\')" title="Print Chest Card">🪪</button></td>'+
+            '</tr>';
+          }).join('')+
+          (list.length?'':`<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:30px">No students found</td></tr>`)+
+        '</tbody></table></div>';
+    mc.querySelectorAll('[data-asf]').forEach(t=>{t.onclick=()=>{flt=t.dataset.asf;draw();};});
+    document.getElementById('asq').oninput=function(){q=this.value;draw();};
+    document.getElementById('btnCardsAll').onclick=()=>printChestCardsBulk(list.map(s=>s.id),'Chest Cards — '+(flt==='all'?'All Students':gCatN(flt)));
+  }
+  draw();
+}
+
+window.showStModal = function(sid) {
+  const s=gS(sid);if(!s)return;
+  const tm=gT(s.teamId),regs=stRegs(sid),res=stRes(sid);
+  let h='<div style="text-align:center">'+
+    qrSVG(location.origin+location.pathname+'?student='+s.id,130)+
+    '<h2 style="margin-top:14px">'+esc(s.name)+'</h2>'+
+    '<div class="badge bpt" style="font-size:1.2rem;margin:10px 0">'+esc(s.chest)+'</div>'+
+    '<div><span class="badge bc">'+gCatN(s.category)+'</span> | '+(tm?esc(tm.name):'-')+'</div>'+
+    '<h3 style="margin-top:22px;margin-bottom:10px">Competitions & Results</h3>'+
+    '<div class="tbl-wrap"><table style="text-align:left"><thead><tr><th>Competition</th><th>Position</th><th>Points</th><th>Grade</th></tr></thead><tbody>';
+  regs.forEach(r=>{
+    const c=gC(r.compId),result=res.find(x=>x.compId===r.compId);
+    h+='<tr><td>'+(c?esc(c.name):'?')+'</td><td>'+(result?result.position:'-')+'</td><td>'+(result?result.points:'-')+'</td><td>'+(result&&result.grade?esc(result.grade):'-')+'</td></tr>';
+  });
+  h+='</tbody></table></div><div style="margin-top:16px;font-size:1.2rem;font-weight:800">Total Points: <span class="grad">'+stPts(sid)+'</span></div></div>';
+  showInfo(h);
+};
+
+window.dlAllTeamsPDF = function() {
+  let html='<html><head><title>All Teams</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #ddd;padding:6px 10px;font-size:12px}th{background:#f5f5f5}.hdr{text-align:center;margin-bottom:20px}.ft{margin-top:20px;font-size:10px;color:#999;text-align:center}</style></head><body>';
+  html+='<div class="hdr"><h2>'+S.config.eventName+'</h2><p>'+S.config.orgName+'</p></div>';
+  S.teams.forEach(t=>{
+    const sts=tmSts(t.id);
+    html+='<h3>'+t.name+' ('+sts.length+' students)</h3><table><tr><th>#</th><th>Chest</th><th>Name</th><th>Category</th><th>Points</th></tr>';
+    sts.forEach((s,i)=>{html+='<tr><td>'+(i+1)+'</td><td>'+s.chest+'</td><td>'+s.name+'</td><td>'+gCatN(s.category)+'</td><td>'+stPts(s.id)+'</td></tr>';});
+    html+='</table>';
+  });
+  html+='<div class="ft">Generated: '+new Date().toLocaleString()+' | © 2026 '+esc(siteDomain())+'</div></body></html>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+};
+
+/* ================================================================
+   ADMIN: BONUS
+   ================================================================ */
+function aBonus(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>💰 Bonus / Minus Points</h2></div>'+
+    '<div class="glass iform">'+
+      '<div class="fg"><label>Team</label><select id="bonTm"><option value="">--Select Team--</option>'+S.teams.map(t=>'<option value="'+t.id+'">'+esc(t.name)+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Points</label><input type="number" id="bonPts" value="0" style="max-width:100px"></div>'+
+      '<div class="fg"><label>Reason</label><input id="bonRsn" placeholder="Reason for bonus/minus"></div>'+
+      '<div class="fg"><label>Type</label><select id="bonTyp"><option value="bonus">➕ Bonus</option><option value="minus">➖ Minus</option></select></div>'+
+      '<div class="fg"><label>&nbsp;</label><button class="btn-success" onclick="addBonus()">Add Entry</button></div>'+
+    '</div>'+
+    '<div class="tbl-wrap glass" style="margin-top:16px"><table><thead><tr><th>Team</th><th>Points</th><th>Reason</th><th></th></tr></thead>'+
+    '<tbody>'+S.bonus.map(b=>{const tm=gT(b.teamId);return'<tr>'+
+      '<td><strong>'+(tm?esc(tm.name):'?')+'</strong></td>'+
+      '<td><span class="badge '+(b.points>=0?'bst':'bns')+'">'+(b.points>0?'+':'')+b.points+'</span></td>'+
+      '<td>'+(b.reason?esc(b.reason):'-')+'</td>'+
+      '<td><button class="btn-danger" onclick="delBonus(\''+b.id+'\')" style="font-size:.8rem;padding:5px 12px">🗑️</button></td>'+
+    '</tr>';}).join('')+'</tbody></table></div>';
+}
+
+window.addBonus = function() {
+  const tid=document.getElementById('bonTm').value;
+  if(!tid){toast('Select a team','error');return;}
+  const pts=parseInt(document.getElementById('bonPts').value)||0;
+  const rsn=document.getElementById('bonRsn').value.trim();
+  const typ=document.getElementById('bonTyp').value;
+  const fp=typ==='minus'?-Math.abs(pts):Math.abs(pts);
+  S.bonus.push({id:uid(),teamId:tid,points:fp,reason:rsn});
+  saveState();toast('Bonus/Minus added 💾','success');renderMain();
+};
+
+window.delBonus = function(id) {
+  S.bonus=S.bonus.filter(b=>b.id!==id);
+  saveState();renderMain();toast('Entry deleted','success');
+};
+
+/* ================================================================
+   ADMIN: CATEGORIES
+   ================================================================ */
+function aCats(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>📁 Categories</h2></div>'+
+    '<div class="infobox"><span class="ii">⚠️</span>Categories can only be deleted when they have zero students AND zero competitions.</div>'+
+    '<button class="btn-primary" onclick="openAddCat()" style="margin-bottom:16px">➕ Add Category</button>'+
+    '<div class="tbl-wrap glass"><table><thead><tr><th>ID</th><th>Name (editable)</th><th>Order</th><th>Students</th><th>Competitions</th><th>Action</th></tr></thead>'+
+    '<tbody>'+S.categories.map(c=>{
+      const sc=stCntByCat(c.id),cc=compCntByCat(c.id),inUse=sc>0||cc>0;
+      return '<tr>'+
+        '<td><code>'+esc(c.id)+'</code></td>'+
+        '<td><input value="'+esc(c.name)+'" onchange="renCat(\''+c.id+'\',this.value)" style="width:160px"></td>'+
+        '<td>'+c.order+'</td><td>'+sc+'</td><td>'+cc+'</td>'+
+        '<td>'+(inUse?'<span class="badge blk">In use</span>':'<button class="btn-danger" onclick="delCat(\''+c.id+'\')" style="font-size:.8rem;padding:5px 12px">🗑️</button>')+'</td>'+
+      '</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+window.renCat = function(id,nm) {
+  const c=gCat(id);if(c){c.name=nm.trim();saveState();toast('Renamed to '+nm,'success');}
+};
+window.delCat = function(id) {
+  if(stCntByCat(id)>0||compCntByCat(id)>0){toast('Cannot delete — still in use','error');return;}
+  if(!confirm('Delete this category?'))return;
+  S.categories=S.categories.filter(c=>c.id!==id);
+  saveState();renderMain();toast('Category deleted','success');
+};
+window.openAddCat = function() {
+  showModal('Add Category',
+    '<div class="fg"><label>Category ID (lowercase, no spaces)</label><input id="mCId" placeholder="e.g. senior"></div>'+
+    '<div class="fg"><label>Display Name</label><input id="mCNm" placeholder="e.g. Senior"></div>',
+  function(){
+    const id=document.getElementById('mCId').value.trim().toLowerCase().replace(/\s+/g,'');
+    const nm=document.getElementById('mCNm').value.trim();
+    if(!id||!nm){toast('Fill all fields','error');return false;}
+    if(gCat(id)){toast('Category ID already exists','error');return false;}
+    S.categories.push({id,name:nm,order:S.categories.length+1});
+    saveState();renderMain();toast('Category added! 💾','success');
+  });
+};
+
+/* ================================================================
+   ADMIN: SEARCH
+   ================================================================ */
+function aSearch(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>🔍 Universal Search</h2></div>'+
+    '<div class="sbox"><input placeholder="Search students, teams, competitions..." id="usq" autofocus></div>'+
+    '<div id="sres"></div>';
+  document.getElementById('usq').oninput=function(){
+    const q=this.value.toLowerCase().trim();
+    const area=document.getElementById('sres');
+    if(!q){area.innerHTML='';return;}
+    const sts=S.students.filter(s=>s.name.toLowerCase().includes(q)||s.chest.toLowerCase().includes(q));
+    const tms=S.teams.filter(t=>t.name.toLowerCase().includes(q));
+    const cps=S.competitions.filter(c=>c.name.toLowerCase().includes(q));
+    let h='';
+    if(sts.length){
+      h+='<h3 style="margin-bottom:10px">👤 Students ('+sts.length+')</h3>';
+      sts.slice(0,20).forEach(s=>{
+        const tm=gT(s.teamId);
+        h+='<div class="glass" style="padding:12px;margin-bottom:8px;cursor:pointer;transition:var(--tr)" onclick="showStModal(\''+s.id+'\')" onmouseenter="this.style.transform=\'translateX(4px)\'" onmouseleave="this.style.transform=\'\'">'+
+          '<span class="badge bpt">'+esc(s.chest)+'</span> <strong>'+esc(s.name)+'</strong> '+
+          '<span class="badge bc">'+gCatN(s.category)+'</span> '+(tm?esc(tm.name):'')+
+          '<span style="float:right;color:var(--t3);font-size:.8rem">'+stPts(s.id)+' pts</span>'+
+        '</div>';
+      });
+    }
+    if(tms.length){
+      h+='<h3 style="margin:18px 0 10px">👥 Teams ('+tms.length+')</h3>';
+      tms.forEach(t=>{h+='<div class="glass" style="padding:12px;margin-bottom:8px"><strong>'+esc(t.name)+'</strong> — '+tmSts(t.id).length+' students — <span class="badge bpt">'+tmPts(t.id)+' pts</span></div>';});
+    }
+    if(cps.length){
+      h+='<h3 style="margin:18px 0 10px">🏆 Competitions ('+cps.length+')</h3>';
+      cps.forEach(c=>{h+='<div class="glass" style="padding:12px;margin-bottom:8px;cursor:pointer" onclick="viewCompParts(\''+c.id+'\')"><strong>'+esc(c.name)+'</strong> <span class="badge bc">'+gCatN(c.category)+'</span></div>';});
+    }
+    if(!h)h='<div class="empty"><div class="ei">🔍</div><p>No results found</p></div>';
+    area.innerHTML=h;
+  };
+}
+
+/* ================================================================
+   ADMIN: PDF DOWNLOADS
+   ================================================================ */
+function aPDF(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>📄 PDF Downloads</h2></div>'+
+    '<div class="stat-grid">'+
+      '<div class="glass" style="padding:20px">'+
+        '<h3 style="margin-bottom:12px">📊 Results by Category</h3>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          '<button class="btn-primary" onclick="dlResPDF(\'all\')">All Results</button>'+
+          S.categories.map(c=>'<button class="btn-secondary" onclick="dlResPDF(\''+c.id+'\')">'+esc(c.name)+'</button>').join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="glass" style="padding:20px">'+
+        '<h3 style="margin-bottom:12px">📋 Competition Participants</h3>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          S.competitions.map(c=>'<button class="btn-secondary" onclick="dlCompPDF(\''+c.id+'\')">'+esc(c.name)+'</button>').join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="glass" style="padding:20px">'+
+        '<h3 style="margin-bottom:12px">👥 Team Students</h3>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          '<button class="btn-primary" onclick="dlAllTeamsPDF()">All Teams</button>'+
+          S.teams.map(t=>'<button class="btn-secondary" onclick="dlTeamPDF(\''+t.id+'\')">'+esc(t.name)+'</button>').join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="glass" style="padding:20px">'+
+        '<h3 style="margin-bottom:12px">🏅 Scoreboard</h3>'+
+        '<button class="btn-primary" onclick="dlScorePDF()">Download Scoreboard</button>'+
+      '</div>'+
+    '</div>';
+}
+
+function pdfWin(title,content){
+  const h='<html><head><title>'+title+'</title><style>body{font-family:sans-serif;padding:20px;font-size:12px}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #ddd;padding:5px 8px}th{background:#f5f5f5;font-size:11px}.hdr{text-align:center;margin-bottom:16px}.ft{margin-top:20px;font-size:10px;color:#999;text-align:center}h2{margin:0}@media print{body{padding:10px}}</style></head><body><div class="hdr"><h2>'+S.config.eventName+'</h2><p>'+S.config.orgName+'</p></div><h3>'+title+'</h3>'+content+'<div class="ft">Generated: '+new Date().toLocaleString()+' | © 2026 '+esc(siteDomain())+'</div></body></html>';
+  const w=window.open('','_blank');w.document.write(h);w.document.close();setTimeout(()=>w.print(),500);
+}
+
+/* ================================================================
+   CHEST CARDS (printable ID badges)
+   ================================================================ */
+function chestCardHTML(s) {
+  const tm=gT(s.teamId);
+  const acc=S.config.accentColor||'#ff8c00';
+  return '<div class="ccard">'+
+    '<div class="cbar"></div>'+
+    (S.config.logo?'<img class="clogo" src="'+S.config.logo+'">':'<div class="clogo-ph">'+esc(S.config.icon||'🕌')+'</div>')+
+    '<div class="cevt">'+esc(S.config.eventName)+'</div>'+
+    '<div class="cchest" style="color:'+acc+'">'+esc(s.chest)+'</div>'+
+    '<div class="cname">'+esc(s.name)+'</div>'+
+    '<div class="ccat">'+esc(gCatN(s.category))+(tm?' • '+esc(tm.name):'')+'</div>'+
+    '<div class="cqr">'+qrSVG(location.origin+location.pathname+'?student='+s.id,72)+'</div>'+
+  '</div>';
+}
+
+function chestCardWin(title, cardsHtml) {
+  const acc=S.config.accentColor||'#ff8c00';
+  const css='body{font-family:sans-serif;padding:16px;background:#fff}'+
+    '.cwrap{display:flex;flex-wrap:wrap;gap:14px}'+
+    '.ccard{width:280px;border:2px solid '+acc+';border-radius:16px;padding:16px 14px 14px;text-align:center;position:relative;background:#fff;page-break-inside:avoid;overflow:hidden}'+
+    '.cbar{position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(135deg,'+acc+',#ff3d00)}'+
+    '.clogo{height:38px;border-radius:8px;margin-top:10px}'+
+    '.clogo-ph{font-size:2rem;margin-top:6px}'+
+    '.cevt{font-size:.68rem;font-weight:700;color:#666;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.4px}'+
+    '.cchest{font-size:2.1rem;font-weight:900;margin:4px 0}'+
+    '.cname{font-size:1.15rem;font-weight:800;color:#1a1a2e;margin:2px 0}'+
+    '.ccat{font-size:.76rem;color:#555;margin-bottom:8px}'+
+    '.cqr{display:flex;justify-content:center;margin-top:4px}'+
+    '@media print{.cwrap{gap:10px}.ccard{page-break-inside:avoid}}';
+  const h='<html><head><title>'+esc(title)+'</title><style>'+css+'</style></head><body><div class="cwrap">'+cardsHtml+'</div></body></html>';
+  const w=window.open('','_blank');w.document.write(h);w.document.close();setTimeout(()=>w.print(),500);
+}
+
+window.printChestCard = function(sid) {
+  const s=gS(sid);if(!s)return;
+  chestCardWin(s.name+' — Chest Card', chestCardHTML(s));
+};
+
+window.printChestCardsBulk = function(ids, title) {
+  const html=ids.map(id=>{const s=gS(id);return s?chestCardHTML(s):'';}).join('');
+  if(!html){toast('No students to print','warning');return;}
+  chestCardWin(title||'Chest Cards', html);
+};
+
+window.dlResPDF = function(cat) {
+  const comps=cat==='all'?S.competitions:S.competitions.filter(c=>c.category===cat);
+  let ct='';
+  comps.forEach(c=>{
+    const res=compRes(c.id);if(!res.length)return;
+    ct+='<h4>'+c.name+' ('+gCatN(c.category)+')</h4><table><tr><th>#</th><th>Chest</th><th>Name</th><th>Team</th><th>Position</th><th>Points</th><th>Grade</th></tr>';
+    res.sort((a,b)=>(parseInt(a.position)||99)-(parseInt(b.position)||99)).forEach((r,i)=>{
+      const s=gS(r.studentId),tm=s?gT(s.teamId):null;
+      ct+='<tr><td>'+(i+1)+'</td><td>'+(s?s.chest:'')+'</td><td>'+(s?s.name:'')+'</td><td>'+(tm?tm.name:'')+'</td><td>'+r.position+'</td><td>'+r.points+'</td><td>'+(r.grade||'')+'</td></tr>';
+    });
+    ct+='</table>';
+  });
+  pdfWin('Results'+(cat!=='all'?' — '+gCatN(cat):''),ct||'<p>No results found</p>');
+};
+
+window.dlCompPDF = function(cid) {
+  const c=gC(cid),regs=compRegs(cid);
+  let ct='<table><tr><th>#</th><th>Chest</th><th>Name</th><th>Team</th><th>Category</th></tr>';
+  regs.forEach((r,i)=>{const s=gS(r.studentId),tm=s?gT(s.teamId):null;ct+='<tr><td>'+(i+1)+'</td><td>'+(s?s.chest:'')+'</td><td>'+(s?s.name:'')+'</td><td>'+(tm?tm.name:'')+'</td><td>'+(s?gCatN(s.category):'')+'</td></tr>';});
+  ct+='</table>';
+  pdfWin(c?c.name+' — Participants':'Participants',ct);
+};
+
+window.dlTeamPDF = function(tid) {
+  const t=gT(tid),sts=tmSts(tid);
+  let ct='<table><tr><th>#</th><th>Chest</th><th>Name</th><th>Category</th><th>Competitions</th><th>Points</th></tr>';
+  sts.forEach((s,i)=>{const comps=stRegs(s.id).map(r=>{const c=gC(r.compId);return c?c.name:'';}).filter(Boolean).join(', ');ct+='<tr><td>'+(i+1)+'</td><td>'+s.chest+'</td><td>'+s.name+'</td><td>'+gCatN(s.category)+'</td><td>'+comps+'</td><td>'+stPts(s.id)+'</td></tr>';});
+  ct+='</table>';
+  pdfWin((t?t.name:'')+' — Students',ct);
+};
+
+window.dlScorePDF = function() {
+  const teams=S.teams.map(t=>({...t,pts:tmPts(t.id)})).sort((a,b)=>b.pts-a.pts);
+  let ct='<table><tr><th>Rank</th><th>Team</th><th>Total Points</th></tr>';
+  teams.forEach((t,i)=>{ct+='<tr><td>'+(i+1)+'</td><td>'+t.name+'</td><td>'+t.pts+'</td></tr>';});
+  ct+='</table>';
+  pdfWin('Scoreboard',ct);
+};
+
+/* ================================================================
+   ADMIN: IMPORT / EXPORT
+   ================================================================ */
+function aImportExport(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>💾 Import / Export</h2></div>'+
+    '<div class="two-col">'+
+      '<div class="glass" style="padding:24px">'+
+        '<h3>📤 Export Backup</h3>'+
+        '<p style="color:var(--t3);margin:10px 0;font-size:.88rem">Downloads all data as a JSON file.</p>'+
+        '<button class="btn-primary" onclick="exportData()">📥 Download Backup JSON</button>'+
+      '</div>'+
+      '<div class="glass" style="padding:24px">'+
+        '<h3>📥 Import Data (Replace All)</h3>'+
+        '<p style="color:var(--t3);margin:10px 0;font-size:.88rem">Upload JSON backup — <strong>replaces ALL existing data</strong></p>'+
+        '<input type="file" id="importFile" accept=".json" style="margin:10px 0"><br>'+
+        '<button class="btn-warning" onclick="importData()">⬆️ Import & Replace</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="glass" style="padding:24px;margin-top:16px">'+
+      '<h3>💾 Storage Info</h3>'+
+      '<p style="color:var(--t3);margin:10px 0;font-size:.85rem">Data is saved to your browser instantly, and synced to a <code>data/state.json</code> file on the server in the background. If the server is unreachable, everything keeps working locally and syncs again once it\'s back. Regular exports are still recommended as an extra backup.</p>'+
+      '<button class="btn-danger" onclick="clearStorage()" style="margin-top:8px">🗑️ Clear All Data</button>'+
+    '</div>';
+}
+
+window.exportData = function() {
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pollappp_backup_'+new Date().toISOString().split('T')[0]+'.json';a.click();
+  toast('Backup exported! 📥','success');
+};
+
+window.importData = function() {
+  const file=document.getElementById('importFile')?.files[0];
+  if(!file){toast('Please select a file','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.config){toast('Invalid backup file','error');return;}
+      if(!confirm('This will REPLACE ALL existing data. Are you sure?'))return;
+      if(!data.schedule)data.schedule=[];
+      if(!data.bonus)data.bonus=[];
+      S=data;saveState();CU=null;render();
+      toast('Data imported successfully! 💾','success');
+    }catch(err){toast('Invalid JSON file','error');}
+  };
+  reader.readAsText(file);
+};
+
+window.clearStorage = function() {
+  if(!confirm('⚠️ DELETE ALL DATA? This cannot be undone!'))return;
+  if(!confirm('Are you ABSOLUTELY SURE?'))return;
+  S=defaultState();saveState();CU=null;render();
+  toast('All data cleared','warning');
+};
+
+/* ================================================================
+   ADMIN: SETTINGS
+   ================================================================ */
+function aSettings(mc) {
+  mc.innerHTML=
+    '<div class="sh"><h2>⚙️ Settings</h2></div>'+
+    '<div class="two-col">'+
+      '<div class="glass" style="padding:26px">'+
+        '<h3 style="margin-bottom:18px">🎨 Event Configuration</h3>'+
+        '<div class="fg"><label>Event Name</label><input id="sEN" value="'+esc(S.config.eventName)+'"></div>'+
+        '<div class="fg"><label>Organization Name</label><input id="sON" value="'+esc(S.config.orgName)+'"></div>'+
+        '<div class="fg"><label>Admin Password</label><input id="sAP" type="password" value="'+esc(S.config.adminPass)+'"></div>'+
+        '<div class="fg"><label>App Icon (emoji, used when no logo is set)</label><input id="sAI" value="'+esc(S.config.icon||'🕌')+'" maxlength="4" style="width:80px;font-size:1.4rem;text-align:center"></div>'+
+        '<div class="fg"><label>Logo URL</label><input id="sLU" value="'+(S.config.logo&&!S.config.logo.startsWith('data:')?esc(S.config.logo):'')+'" placeholder="https://..."></div>'+
+        '<div class="fg"><label>Or Upload Logo Image</label><input type="file" id="sLF" accept="image/*"></div>'+
+        '<div class="infobox" style="margin-bottom:14px"><span class="ii">ℹ️</span>If a logo is set, it replaces the app icon everywhere (header, login screen, browser tab).</div>'+
+        (S.config.logo?'<div style="margin-bottom:14px"><img src="'+S.config.logo+'" style="height:58px;border-radius:10px" onerror="this.style.display=\'none\'"> <button class="btn-ghost" style="font-size:.78rem" onclick="removeLogo()">✕ Remove Logo</button></div>':'')+
+        '<div class="fg-row">'+
+          '<div class="fg"><label>Accent Color</label><input type="color" id="sAC" value="'+(S.config.accentColor||'#ff8c00')+'" style="width:60px;height:40px;padding:2px;border-radius:8px"></div>'+
+          '<div class="fg"><label>Max Programs/Category (0=∞)</label><input type="number" id="sMP" value="'+(S.config.maxProgPerCat||0)+'" min="0"></div>'+
+          '<div class="fg"><label>Max General Programs (0=∞)</label><input type="number" id="sMG" value="'+(S.config.maxGenProg||0)+'" min="0"></div>'+
+        '</div>'+
+        '<button class="btn-success" onclick="saveSettings()" style="margin-top:8px">💾 Save Settings</button>'+
+      '</div>'+
+      '<div class="glass" style="padding:26px;border-color:rgba(231,76,60,.3)">'+
+        '<h3 style="color:#e74c3c">⚠️ Danger Zone</h3>'+
+        '<p style="color:var(--t3);margin:10px 0;font-size:.88rem">Permanently delete ALL data and reset to defaults.</p>'+
+        '<button class="btn-danger" onclick="clearStorage()">🗑️ Reset All Data</button>'+
+      '</div>'+
+    '</div>';
+}
+
+window.saveSettings = function() {
+  S.config.eventName=document.getElementById('sEN').value.trim()||S.config.eventName;
+  S.config.orgName=document.getElementById('sON').value.trim()||S.config.orgName;
+  S.config.adminPass=document.getElementById('sAP').value.trim()||S.config.adminPass;
+  S.config.icon=document.getElementById('sAI').value.trim()||'🕌';
+  S.config.accentColor=document.getElementById('sAC').value;
+  S.config.maxProgPerCat=parseInt(document.getElementById('sMP').value)||0;
+  S.config.maxGenProg=parseInt(document.getElementById('sMG').value)||0;
+  const lu=document.getElementById('sLU').value.trim();
+  const lf=document.getElementById('sLF')?.files[0];
+  if(lf){
+    const reader=new FileReader();
+    reader.onload=function(e){S.config.logo=e.target.result;saveState();render();toast('Settings saved! 💾','success');};
+    reader.readAsDataURL(lf);return;
+  }
+  if(lu)S.config.logo=lu;
+  saveState();render();toast('Settings saved! 💾','success');
+};
+
+window.removeLogo = function() {
+  S.config.logo='';
+  saveState();render();toast('Logo removed — using app icon instead','success');
+};
+
+/* ================================================================
+   JUDGE PORTAL
+   ================================================================ */
+function renderJudge() {
+  const judge=gJ(CU.judgeId);
+  if(!judge){CU=null;render();return;}
+  const sb='<div class="sb-group">Judging</div>'+
+    '<a href="#" data-tab="judgepanel" class="active" onclick="RCOMP=\'\';setTab(\'judgepanel\');return false"><span class="ico">⚖️</span>Judge Panel</a>';
+  document.getElementById('app').innerHTML=
+    headerH()+
+    '<div class="sidebar" id="sidebar">'+sb+'</div>'+
+    '<div class="main" id="mc"></div>'+
+    footerH();
+  renderMain();
+}
+
+function judgeTab(mc) {
+  const judge=gJ(CU.judgeId);if(!judge){doLogout();return;}
+  if (!RCOMP) { jResultsList(mc, judge); } else { drawResults(mc, RCOMP); }
+}
+
+function jResultsList(mc, judge) {
+  const comps = jComps(judge);
+  mc.innerHTML=
+    '<div class="sh"><h2>⚖️ Judge Panel — '+esc(judge.name)+'</h2></div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Pick a competition below to enter points. Positions are ranked automatically from the points you enter.</div>'+
+    (comps.length>1?'<div class="sbox" style="max-width:400px"><input placeholder="Search competitions..." id="jResSearch" autofocus></div>':'')+
+    '<div class="stat-grid" id="jResGrid">'+
+      comps.map(c=>{
+        const r=compRes(c.id);
+        return '<div class="glass res-card" data-name="'+esc(c.name.toLowerCase())+'" style="padding:18px;cursor:pointer" onclick="RCOMP=\''+c.id+'\';renderMain()">'+
+          '<div style="font-weight:800;margin-bottom:8px">'+esc(c.name)+'</div>'+
+          '<span class="badge bc">'+gCatN(c.category)+'</span>'+
+          '<div style="margin-top:10px;font-size:.83rem;color:var(--t3)">'+r.length+' results</div>'+
+          '<div style="margin-top:8px"><span class="badge '+(r.length?'bok':'bwn')+'">'+(r.length?'Has results':'No results yet')+'</span></div>'+
+        '</div>';
+      }).join('')+
+    '</div>'+
+    '<div id="jResNoMatch" style="display:none;text-align:center;color:var(--t3);padding:30px">No competitions match your search.</div>'+
+    (comps.length?'':'<div class="glass" style="padding:30px;text-align:center;color:var(--t3);margin-top:16px">No competitions assigned to you yet. Contact admin to get access.</div>');
+  const se=document.getElementById('jResSearch');
+  if(se)se.oninput=function(){filterResCards(this.value,'jResGrid','jResNoMatch');};
+}
+
+/* ================================================================
+   TEAM PORTAL
+   ================================================================ */
+function renderTeam() {
+  const team=gT(CU.teamId);
+  if(!team){CU=null;render();return;}
+  if(S.locked){
+    document.getElementById('app').innerHTML=
+      '<div class="locked">'+
+        '<div class="lock-icon">🔒</div>'+
+        '<h2>Team Portal Locked</h2>'+
+        '<p style="max-width:400px;opacity:.8">The team portal is currently locked by the admin.</p>'+
+        '<button class="btn-secondary" onclick="doLogout()" style="margin-top:20px">🚪 Logout</button>'+
+      '</div>'+footerH();
+    return;
+  }
+  const tabs=[
+    {id:'dashboard',ico:'📊',lbl:'Dashboard'},
+    {id:'students',ico:'👨‍🎓',lbl:'Students'},
+    {id:'register',ico:'📝',lbl:'Register for Competitions'},
+    {id:'mycomps',ico:'🏆',lbl:'My Competitions'},
+    {id:'partlist',ico:'📋',lbl:'Participation List'},
+    {id:'importexport',ico:'💾',lbl:'Import/Export'}
+  ];
+  let sb='';
+  tabs.forEach(t=>{sb+='<a href="#" data-tab="'+t.id+'" class="'+(TAB===t.id?'active':'')+'" onclick="setTab(\''+t.id+'\');return false"><span class="ico">'+t.ico+'</span>'+t.lbl+'</a>';});
+  document.getElementById('app').innerHTML=
+    headerH()+
+    '<div class="sidebar" id="sidebar">'+sb+'</div>'+
+    '<div class="main" id="mc"></div>'+
+    footerH();
+  renderMain();
+}
+
+function teamTab(mc) {
+  const team=gT(CU.teamId);if(!team)return;
+  const map={dashboard:tDash,students:tStudents,register:tRegister,mycomps:tMyComps,partlist:tPartList,importexport:tImportExport};
+  (map[TAB]||tDash)(mc,team);
+}
+
+/* ================================================================
+   TEAM: DASHBOARD
+   ================================================================ */
+function tDash(mc,team) {
+  const sts=tmSts(team.id);
+  const regs=S.registrations.filter(r=>sts.some(s=>s.id===r.studentId));
+  const pts=tmPts(team.id);
+  const sorted=S.teams.map(t=>({...t,pts:tmPts(t.id)})).sort((a,b)=>b.pts-a.pts);
+  const myRank=sorted.findIndex(t=>t.id===team.id)+1;
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  mc.innerHTML=
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap">'+
+      '<div><h2 style="font-size:1.7rem;font-weight:900">Welcome, '+esc(team.name)+'! 👋</h2><p style="color:var(--t3);margin-top:4px">Participation Crew Portal</p></div>'+
+      (myRank?'<span class="badge bpt" style="font-size:1rem;padding:8px 16px;margin-left:auto">'+(myRank===1?'🥇':myRank===2?'🥈':myRank===3?'🥉':'#'+myRank)+' Rank</span>':'')+
+    '</div>'+
+    '<div class="stat-grid">'+
+      '<div class="stat-card glass"><div class="num">'+sts.length+'</div><div class="lbl">Students</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+regs.length+'</div><div class="lbl">Registrations</div></div>'+
+      '<div class="stat-card glass"><div class="num">'+pts+'</div><div class="lbl">Total Points</div></div>'+
+      (myRank?'<div class="stat-card glass"><div class="num">'+myRank+'</div><div class="lbl">Team Rank</div></div>':'')+
+    '</div>'+
+    '<h3 style="margin-bottom:12px">📁 Category Breakdown</h3>'+
+    '<div class="stat-grid">'+
+      nonGen.map(c=>'<div class="stat-card glass"><div class="num">'+tmCatPts(team.id,c.id)+'</div><div class="lbl">'+esc(c.name)+' ('+tmStsByCat(team.id,c.id).length+' students)</div></div>').join('')+
+    '</div>';
+}
+
+/* ================================================================
+   TEAM: STUDENTS
+   ================================================================ */
+function tStudents(mc,team) {
+  let flt='all',q='';
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  function draw() {
+    const cats=[{id:'all',name:'All'},...nonGen];
+    let list=tmSts(team.id).filter(s=>s.category!=='general');
+    if(flt!=='all')list=list.filter(s=>s.category===flt);
+    if(q){const qq=q.toLowerCase();list=list.filter(s=>s.name.toLowerCase().includes(qq)||s.chest.toLowerCase().includes(qq));}
+    mc.innerHTML=
+      '<div class="sh"><h2>👨‍🎓 Students</h2></div>'+
+      '<div class="infobox"><span class="ii">ℹ️</span><div><strong>General</strong> category contains all your students automatically. Add students to their non-general category here.</div></div>'+
+      '<button class="btn-primary" onclick="openAddSt(\''+team.id+'\')" style="margin-bottom:16px">+ Add Student</button> '+
+      '<button class="btn-secondary" id="btnCardsTeam" style="margin-bottom:16px">🪪 Print Chest Cards ('+list.length+')</button>'+
+      '<div class="tabs">'+cats.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-stf="'+c.id+'">'+esc(c.name)+' ('+(c.id==='all'?tmSts(team.id).filter(s=>s.category!=='general').length:tmStsByCat(team.id,c.id).length)+')</div>').join('')+'</div>'+
+      '<div class="sbox"><input placeholder="Search by name or chest number..." value="'+esc(q)+'" id="stq"></div>'+
+      '<div class="tbl-wrap glass"><table>'+
+        '<thead><tr><th>Chest No</th><th>Name</th><th>Category</th><th>Competitions</th><th>Points</th><th>Actions</th></tr></thead>'+
+        '<tbody>'+
+          list.map(s=>{
+            const comps=stRegs(s.id).map(r=>{const c=gC(r.compId);return c?'<span class="chip">'+esc(c.name)+'</span>':'';}).join('');
+            return '<tr>'+
+              '<td><span class="badge bpt">'+esc(s.chest)+'</span></td>'+
+              '<td><strong>'+esc(s.name)+'</strong></td>'+
+              '<td><span class="badge bc">'+gCatN(s.category)+'</span></td>'+
+              '<td>'+(comps||'<span style="color:var(--t3)">—</span>')+'</td>'+
+              '<td><span class="badge bpt">'+stPts(s.id)+'</span></td>'+
+              '<td style="white-space:nowrap">'+
+                '<button class="eye-btn" onclick="printChestCard(\''+s.id+'\')" title="Print Chest Card">🪪</button> '+
+                '<button class="eye-btn" onclick="openEditSt(\''+s.id+'\',\''+team.id+'\')">✏️</button> '+
+                '<button class="btn-danger" onclick="delSt(\''+s.id+'\',\''+team.id+'\')" style="font-size:.8rem;padding:5px 10px">🗑️</button>'+
+              '</td>'+
+            '</tr>';
+          }).join('')+
+          (list.length?'':`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:30px">No students. Click "+ Add Student" to get started.</td></tr>`)+
+        '</tbody></table></div>';
+    mc.querySelectorAll('[data-stf]').forEach(t=>{t.onclick=()=>{flt=t.dataset.stf;draw();};});
+    document.getElementById('stq').oninput=function(){q=this.value;draw();};
+    document.getElementById('btnCardsTeam').onclick=()=>printChestCardsBulk(list.map(s=>s.id),team.name+' — Chest Cards');
+  }
+  draw();
+}
+
+window.openAddSt = function(tid) {
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  showModal('Add Student',
+    '<div class="fg"><label>Chest Number</label><input id="mSC" placeholder="e.g. 101"></div>'+
+    '<div class="fg"><label>Student Name</label><input id="mSN" placeholder="Full name"></div>'+
+    '<div class="fg"><label>Category</label><select id="mSCat">'+nonGen.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div>'+
+    '<div class="infobox" style="margin-top:8px"><span class="ii">ℹ️</span>Students are automatically included in General category competitions.</div>',
+  function(){
+    const chest=document.getElementById('mSC').value.trim();
+    const name=document.getElementById('mSN').value.trim();
+    const cat=document.getElementById('mSCat').value;
+    if(!chest||!name){toast('Fill chest number and name','error');return false;}
+    if(S.students.find(s=>s.teamId===tid&&s.chest===chest)){toast('Duplicate chest number!','error');return false;}
+    S.students.push({id:uid(),chest,name,category:cat,teamId:tid});
+    saveState();renderMain();toast(name+' added! 💾','success');
+  });
+};
+
+window.openEditSt = function(sid,tid) {
+  const s=gS(sid);if(!s)return;
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  showModal('Edit Student',
+    '<div class="fg"><label>Chest Number</label><input id="mSC" value="'+esc(s.chest)+'"></div>'+
+    '<div class="fg"><label>Student Name</label><input id="mSN" value="'+esc(s.name)+'"></div>'+
+    '<div class="fg"><label>Category</label><select id="mSCat">'+nonGen.map(c=>'<option value="'+c.id+'"'+(s.category===c.id?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select></div>',
+  function(){
+    const chest=document.getElementById('mSC').value.trim();
+    const name=document.getElementById('mSN').value.trim();
+    const cat=document.getElementById('mSCat').value;
+    if(!chest||!name){toast('Fill all fields','error');return false;}
+    if(S.students.find(x=>x.teamId===tid&&x.chest===chest&&x.id!==sid)){toast('Duplicate chest number!','error');return false;}
+    const oldCat=s.category;
+    Object.assign(s,{chest,name,category:cat});
+    if(oldCat!==cat){S.registrations=S.registrations.filter(r=>{if(r.studentId!==sid)return true;const comp=gC(r.compId);return comp&&(comp.category===cat||comp.category==='general');});}
+    saveState();renderMain();toast('Student updated 💾','success');
+  });
+};
+
+window.delSt = function(sid,tid) {
+  if(!confirm('Delete this student and all their data?'))return;
+  S.students=S.students.filter(x=>x.id!==sid);
+  S.registrations=S.registrations.filter(r=>r.studentId!==sid);
+  S.attendance=S.attendance.filter(a=>a.studentId!==sid);
+  S.results=S.results.filter(r=>r.studentId!==sid);
+  saveState();renderMain();toast('Student deleted','success');
+};
+
+/* ================================================================
+   TEAM: REGISTER FOR COMPETITIONS
+   ================================================================ */
+function tRegister(mc,team) {
+  const mySts=tmSts(team.id);
+  const stCats=[...new Set(mySts.map(s=>s.category))].filter(c=>c!=='general');
+  const availIds=[...stCats];
+  if(S.categories.find(c=>c.id==='general'))availIds.push('general');
+  const avail=S.categories.filter(c=>availIds.includes(c.id));
+  let catFlt=avail[0]?.id||'';
+
+  function draw() {
+    const comps=S.competitions.filter(c=>c.category===catFlt);
+    mc.innerHTML=
+      '<div class="sh"><h2>📝 Register for Competitions</h2></div>'+
+      '<div class="infobox"><span class="ii">ℹ️</span><div>For <strong>General</strong> competitions, all your students are eligible.<br>Use the search box to find and add students by chest no or name.</div></div>'+
+      '<div class="tabs">'+avail.map(c=>'<div class="tab'+(catFlt===c.id?' active':'')+'" data-rf="'+c.id+'">'+(c.id==='general'?'🌐 ':'')+esc(c.name)+'</div>').join('')+'</div>'+
+      '<div id="rcList">'+
+        (comps.length?'':'<div class="empty glass"><div class="ei">📝</div><p>No competitions in this category</p></div>')+
+        comps.map(comp=>{
+          const myRegs=tmCompRegs(team.id,comp.id);
+          const rem=comp.maxPerTeam-myRegs.length;
+          const chips=myRegs.map(r=>{const st=gS(r.studentId);if(!st)return'';return'<span class="chip">'+esc(st.chest)+' — '+esc(st.name)+' <span class="x" onclick="removeReg(\''+r.id+'\',\''+team.id+'\')">×</span></span>';}).join('');
+          return '<div class="crcard glass">'+
+            '<div class="crhead">'+
+              '<strong>'+esc(comp.name)+'</strong>'+
+              (comp.isGroup?'<span class="badge bg2">Group('+comp.groupSize+')</span>':'<span class="badge bc">Individual</span>')+
+              '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
+              '<button class="eye-btn" onclick="viewCompParts(\''+comp.id+'\')" title="View all participants">👁️</button>'+
+              '<span style="margin-left:auto;font-size:.82rem;color:var(--t3)">Max: '+comp.maxPerTeam+' | Used: '+myRegs.length+' | Left: '+rem+'</span>'+
+            '</div>'+
+            '<div style="margin-bottom:12px">'+(chips||'<span style="color:var(--t3);font-size:.84rem">No students registered yet</span>')+'</div>'+
+            (rem>0?
+              '<div class="sswrap" id="sw_'+comp.id+'">'+
+                '<input placeholder="🔍 Search by chest no or name to add..." id="rsi_'+comp.id+'" autocomplete="off" onfocus="showSugs(\''+comp.id+'\',\''+team.id+'\')" oninput="showSugs(\''+comp.id+'\',\''+team.id+'\')">'+
+                '<div class="suglist" id="rsl_'+comp.id+'"></div>'+
+              '</div>'+
+              '<button class="btn-ghost" style="margin-top:8px;font-size:.8rem" onclick="openAddStForComp(\''+comp.id+'\',\''+team.id+'\')">➕ New Student</button>'
+            :'<div style="color:var(--t3);font-size:.84rem;margin-top:4px">✅ All slots filled for your team</div>')+
+          '</div>';
+        }).join('')+
+      '</div>';
+    mc.querySelectorAll('[data-rf]').forEach(t=>{t.onclick=()=>{catFlt=t.dataset.rf;draw();};});
+    document.addEventListener('click',function(e){if(!e.target.closest('.sswrap'))document.querySelectorAll('.suglist').forEach(sl=>sl.classList.remove('show'));});
+  }
+  draw();
+}
+
+window.showSugs = function(compId,teamId) {
+  const comp=gC(compId);if(!comp)return;
+  const inp=document.getElementById('rsi_'+compId);
+  const sl=document.getElementById('rsl_'+compId);
+  if(!inp||!sl)return;
+  const q=inp.value.toLowerCase().trim();
+  const mySts=tmSts(teamId);
+  const myRegs=tmCompRegs(teamId,compId);
+  const regIds=myRegs.map(r=>r.studentId);
+  let elig=comp.category==='general'?mySts:mySts.filter(s=>s.category===comp.category);
+  elig=elig.filter(s=>!regIds.includes(s.id));
+  if(q)elig=elig.filter(s=>s.name.toLowerCase().includes(q)||s.chest.toLowerCase().includes(q));
+  if(!elig.length){sl.innerHTML='<div class="sugitem dis" style="color:var(--t3)">No eligible students found</div><div class="sugitem" onclick="openAddStForComp(\''+compId+'\',\''+teamId+'\')">➕ Add New Student</div>';sl.classList.add('show');return;}
+  sl.innerHTML=elig.slice(0,12).map(s=>{
+    let warn='',dis=false;
+    if(S.config.maxProgPerCat>0&&comp.category!=='general'){const cnt=stProgInCat(s.id,comp.category);if(cnt>=S.config.maxProgPerCat){warn='⚠️ Category limit';dis=true;}}
+    if(S.config.maxGenProg>0&&comp.category==='general'){const cnt=stGenProg(s.id);if(cnt>=S.config.maxGenProg){warn='⚠️ General limit';dis=true;}}
+    return '<div class="sugitem'+(dis?' dis':'')+'" onclick="'+(dis?'':' addReg(\''+compId+'\',\''+s.id+'\',\''+teamId+'\')')+'">'+
+      '<span class="badge bpt" style="font-size:.7rem">'+esc(s.chest)+'</span>'+
+      '<strong>'+esc(s.name)+'</strong>'+
+      '<span class="badge bc" style="font-size:.68rem">'+gCatN(s.category)+'</span>'+
+      (warn?'<span class="warn-txt">'+warn+'</span>':'')+
+    '</div>';
+  }).join('');
+  sl.classList.add('show');
+};
+
+window.addReg = function(compId,studentId,teamId) {
+  const comp=gC(compId),st=gS(studentId);
+  if(!comp||!st)return;
+  if(S.config.maxProgPerCat>0&&comp.category!=='general'){if(stProgInCat(studentId,comp.category)>=S.config.maxProgPerCat){toast(st.name+': category limit reached','warning');return;}}
+  if(S.config.maxGenProg>0&&comp.category==='general'){if(stGenProg(studentId)>=S.config.maxGenProg){toast(st.name+': general limit reached','warning');return;}}
+  const tr=tmCompRegs(teamId,compId);
+  if(tr.length>=comp.maxPerTeam){toast('Max participants per team reached','error');return;}
+  if(tr.some(r=>r.studentId===studentId)){toast('Student already registered','warning');return;}
+  S.registrations.push({id:uid(),compId,studentId});
+  saveState();toast(st.name+' registered! 💾','success');renderMain();
+};
+
+window.removeReg = function(regId,teamId) {
+  S.registrations=S.registrations.filter(r=>r.id!==regId);
+  saveState();toast('Registration removed','success');renderMain();
+};
+
+window.openAddStForComp = function(compId,teamId) {
+  const comp=gC(compId);if(!comp)return;
+  const nonGen=S.categories.filter(c=>c.id!=='general');
+  const isGeneral=comp.category==='general';
+  showModal('Add New Student',
+    '<div class="fg"><label>Chest Number</label><input id="mSC" placeholder="e.g. 101"></div>'+
+    '<div class="fg"><label>Student Name</label><input id="mSN" placeholder="Full name"></div>'+
+    (isGeneral
+      ?'<div class="fg"><label>Category</label><select id="mSCat">'+nonGen.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div>'
+      :'<div class="fg"><label>Category</label><input disabled value="'+esc(gCatN(comp.category))+'"></div>')+
+    '<div class="infobox" style="margin-top:8px"><span class="ii">ℹ️</span>Adds this student to your team and registers them for <strong>'+esc(comp.name)+'</strong> right away.</div>',
+  function(){
+    const chest=document.getElementById('mSC').value.trim();
+    const name=document.getElementById('mSN').value.trim();
+    const cat=isGeneral?document.getElementById('mSCat').value:comp.category;
+    if(!chest||!name){toast('Fill chest number and name','error');return false;}
+    if(S.students.find(s=>s.teamId===teamId&&s.chest===chest)){toast('Duplicate chest number!','error');return false;}
+    const tr=tmCompRegs(teamId,compId);
+    if(tr.length>=comp.maxPerTeam){toast('Max participants per team reached','error');return false;}
+    const sid=uid();
+    S.students.push({id:sid,chest,name,category:cat,teamId});
+    S.registrations.push({id:uid(),compId,studentId:sid});
+    saveState();renderMain();toast(name+' added & registered! 💾','success');
+  }, '✅ Add & Register');
+};
+
+/* ================================================================
+   TEAM: MY COMPETITIONS
+   ================================================================ */
+function tMyComps(mc,team) {
+  const sts=tmSts(team.id),sids=sts.map(s=>s.id);
+  const myCompIds=[...new Set(S.registrations.filter(r=>sids.includes(r.studentId)).map(r=>r.compId))];
+  mc.innerHTML=
+    '<div class="sh"><h2>🏆 My Competitions ('+myCompIds.length+')</h2></div>'+
+    (myCompIds.length?'':'<div class="empty glass"><div class="ei">🏆</div><p>No registrations yet. Go to "Register for Competitions" to sign up.</p></div>')+
+    '<div class="stat-grid">'+
+      myCompIds.map(cid=>{
+        const c=gC(cid);if(!c)return'';
+        const regs=S.registrations.filter(r=>r.compId===cid&&sids.includes(r.studentId));
+        return '<div class="glass" style="padding:18px">'+
+          '<div style="font-weight:800;margin-bottom:10px">'+esc(c.name)+'</div>'+
+          '<div style="margin-bottom:10px">'+
+            '<span class="badge bc">'+gCatN(c.category)+'</span> '+
+            (c.isGroup?'<span class="badge bg2">Group</span> ':'')+
+            '<span class="badge '+(c.type==='stage'?'bst':'bns')+'">'+(c.type==='stage'?'Stage':'Non-Stage')+'</span>'+
+          '</div>'+
+          '<div>'+regs.map(r=>{const st=gS(r.studentId);return st?'<span class="chip">'+esc(st.chest)+' '+esc(st.name)+'</span>':'';}).join('')+'</div>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+}
+
+/* ================================================================
+   TEAM: PARTICIPATION LIST
+   ================================================================ */
+function tPartList(mc,team) {
+  const sts=tmSts(team.id);
+  mc.innerHTML=
+    '<div class="sh"><h2>📋 Participation List</h2></div>'+
+    '<button class="btn-primary" onclick="dlPartPDF(\''+team.id+'\')" style="margin-bottom:14px">📄 Download PDF</button>'+
+    '<div class="tbl-wrap glass"><table>'+
+      '<thead><tr><th>Chest</th><th>Name</th><th>Category</th><th>Competitions</th></tr></thead>'+
+      '<tbody>'+
+        sts.map(s=>{
+          const comps=stRegs(s.id).map(r=>{const c=gC(r.compId);return c?'<span class="chip">'+esc(c.name)+'</span>':'';}).join('');
+          return '<tr>'+
+            '<td><span class="badge bpt">'+esc(s.chest)+'</span></td>'+
+            '<td><strong>'+esc(s.name)+'</strong></td>'+
+            '<td><span class="badge bc">'+gCatN(s.category)+'</span></td>'+
+            '<td>'+(comps||'<span style="color:var(--t3)">—</span>')+'</td>'+
+          '</tr>';
+        }).join('')+
+        (sts.length?'':`<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:30px">No students yet</td></tr>`)+
+      '</tbody></table></div>';
+}
+
+window.dlPartPDF = function(tid) {
+  const t=gT(tid),sts=tmSts(tid);
+  let ct='<table><tr><th>#</th><th>Chest</th><th>Name</th><th>Category</th><th>Competitions</th></tr>';
+  sts.forEach((s,i)=>{const comps=stRegs(s.id).map(r=>{const c=gC(r.compId);return c?c.name:'';}).filter(Boolean).join(', ');ct+='<tr><td>'+(i+1)+'</td><td>'+s.chest+'</td><td>'+s.name+'</td><td>'+gCatN(s.category)+'</td><td>'+comps+'</td></tr>';});
+  ct+='</table>';
+  pdfWin((t?t.name:'')+' — Participation List',ct);
+};
+
+/* ================================================================
+   TEAM: IMPORT/EXPORT
+   ================================================================ */
+function tImportExport(mc,team) {
+  mc.innerHTML=
+    '<div class="sh"><h2>💾 Import / Export</h2></div>'+
+    '<div class="two-col">'+
+      '<div class="glass" style="padding:24px">'+
+        '<h3>📤 Export Team Data</h3>'+
+        '<p style="color:var(--t3);margin:10px 0;font-size:.88rem">Download your team\'s students and registrations</p>'+
+        '<button class="btn-primary" onclick="exportTeam(\''+team.id+'\')">📥 Download Team Backup</button>'+
+      '</div>'+
+      '<div class="glass" style="padding:24px">'+
+        '<h3>📥 Import Students</h3>'+
+        '<p style="color:var(--t3);margin:10px 0;font-size:.88rem">Upload a JSON file — <strong>replaces ALL your students</strong></p>'+
+        '<input type="file" id="timFile" accept=".json" style="margin:10px 0"><br>'+
+        '<button class="btn-warning" onclick="importTeam(\''+team.id+'\')">⬆️ Import & Replace</button>'+
+      '</div>'+
+    '</div>';
+}
+
+window.exportTeam = function(tid) {
+  const t=gT(tid),sts=tmSts(tid),sids=sts.map(s=>s.id);
+  const data={team:{name:t.name},students:sts,registrations:S.registrations.filter(r=>sids.includes(r.studentId)),results:S.results.filter(r=>sids.includes(r.studentId)),attendance:S.attendance.filter(a=>sids.includes(a.studentId))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='team_'+t.name.replace(/\s+/g,'_')+'_backup.json';a.click();
+  toast('Team data exported! 📥','success');
+};
+
+window.importTeam = function(tid) {
+  const file=document.getElementById('timFile')?.files[0];
+  if(!file){toast('Please select a JSON file','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.students){toast('Invalid file — no students data','error');return;}
+      if(!confirm('This will REPLACE all your current students. Continue?'))return;
+      const old=tmSts(tid).map(s=>s.id);
+      S.students=S.students.filter(s=>s.teamId!==tid);
+      S.registrations=S.registrations.filter(r=>!old.includes(r.studentId));
+      S.attendance=S.attendance.filter(a=>!old.includes(a.studentId));
+      S.results=S.results.filter(r=>!old.includes(r.studentId));
+      const idMap={};
+      data.students.forEach(s=>{const ni=uid();idMap[s.id]=ni;S.students.push({...s,id:ni,teamId:tid});});
+      if(data.registrations)data.registrations.forEach(r=>{const ni=idMap[r.studentId];if(ni&&gC(r.compId))S.registrations.push({...r,id:uid(),studentId:ni});});
+      saveState();render();toast('Students imported! 💾','success');
+    }catch{toast('Invalid JSON file','error');}
+  };
+  reader.readAsText(file);
+};
+
+/* ================================================================
+   STUDENT PUBLIC PROFILE (URL: ?student=ID)
+   ================================================================ */
+function renderStudentPublic(sid) {
+  const s=gS(sid);
+  const app=document.getElementById('app');
+  if(!s){
+    app.innerHTML='<div class="login-page"><div class="glass" style="padding:40px;text-align:center"><div style="font-size:3rem;margin-bottom:12px">❓</div><h2>Student Not Found</h2><p style="color:var(--t3);margin:12px 0">The student with this ID does not exist.</p><button class="btn-secondary" onclick="location.href=location.pathname">← Go to Login</button></div></div>'+footerH();
+    return;
+  }
+  const tm=gT(s.teamId),regs=stRegs(sid),res=stRes(sid);
+  app.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - var(--fh));padding:20px">'+
+      '<div class="student-profile glass">'+
+        (S.config.logo?'<img src="'+S.config.logo+'" style="height:52px;border-radius:10px;margin-bottom:12px" onerror="this.style.display=\'none\'">':'')+
+        '<div style="font-size:.83rem;color:var(--t3);margin-bottom:10px">'+esc(S.config.eventName)+'</div>'+
+        qrSVG(location.href,140)+
+        '<div class="chest-big">'+esc(s.chest)+'</div>'+
+        '<h2 style="margin:10px 0;font-size:1.6rem">'+esc(s.name)+'</h2>'+
+        '<div><span class="badge bc">'+gCatN(s.category)+'</span></div>'+
+        '<div style="color:var(--t2);font-weight:600;margin:8px 0">'+(tm?esc(tm.name):'')+'</div>'+
+        (regs.length?
+          '<h3 style="margin:16px 0 12px">Competitions</h3>'+
+          '<div class="tbl-wrap"><table style="text-align:left"><thead><tr><th>Competition</th><th>Position</th><th>Points</th><th>Grade</th></tr></thead><tbody>'+
+            regs.map(r=>{const c=gC(r.compId),result=res.find(x=>x.compId===r.compId);return'<tr><td>'+(c?esc(c.name):'?')+'</td><td>'+(result?result.position:'-')+'</td><td>'+(result?result.points:'-')+'</td><td>'+(result&&result.grade?esc(result.grade):'-')+'</td></tr>';}).join('')+
+          '</tbody></table></div>'+
+          '<div style="margin-top:16px;font-size:1.2rem;font-weight:800">Total Points: <span class="grad">'+stPts(sid)+'</span></div>'
+        :'<p style="color:var(--t3)">No competitions registered yet</p>')+
+        '<button class="btn-secondary" onclick="printChestCard(\''+s.id+'\')" style="margin-top:20px">🪪 Print Chest Card</button> '+
+        '<button class="btn-secondary" onclick="location.href=location.pathname" style="margin-top:20px">← Back to Login</button>'+
+      '</div>'+
+    '</div>'+footerH();
+}
+
+/* ================================================================
+   START
+   ================================================================ */
+render();
+hydrateFromServer(); // pull latest data from the server after first paint
+</script>
+</body>
+</html>
