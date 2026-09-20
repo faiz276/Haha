@@ -2651,7 +2651,7 @@ function defaultState() {
       {id:'hss',name:'Higher Secondary',order:4},
       {id:'general',name:'General',order:5}
     ],
-    teams:[],students:[],competitions:[],judges:[],
+    teams:[],students:[],competitions:[],judges:[],marks:[],
     registrations:[],attendance:[],results:[],
     bonus:[],locked:false,theme:'light',schedule:[]
   };
@@ -2667,6 +2667,7 @@ function loadState() {
       if (!p.bonus) p.bonus = [];
       if (!p.attendance) p.attendance = [];
       if (!p.judges) p.judges = [];
+      if (!p.marks) p.marks = [];
       if (!p.config) p.config = def.config;
       if (!p.config.accentColor) p.config.accentColor = '#ff8c00';
       if (!p.config.maxProgPerCat) p.config.maxProgPerCat = 0;
@@ -2756,6 +2757,7 @@ function hydrateFromServer() {
       if (!serverData.schedule) serverData.schedule = [];
       if (!serverData.bonus) serverData.bonus = [];
       if (!serverData.attendance) serverData.attendance = [];
+      if (!serverData.marks) serverData.marks = [];
       S = serverData;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
       render();
@@ -2862,6 +2864,18 @@ const tmCompRegs = (tid,cid) => S.registrations.filter(r=>r.compId===cid&&(gS(r.
 const stRegs = sid => S.registrations.filter(r=>r.studentId===sid);
 const stRes = sid => S.results.filter(r=>r.studentId===sid);
 const compRes = cid => S.results.filter(r=>r.compId===cid);
+const compJudges = cid => S.judges.filter(j=>(!j.compIds||!j.compIds.length)||j.compIds.includes(cid));
+const compMax = c => (c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100);
+const perJudgeMax = c => { const n=compJudges(c.id).length; return n?compMax(c)/n:compMax(c); };
+const pjDisp = v => String(Math.round(v*100)/100);
+const markVal = (cid,sid,jid) => { const m=(S.marks||[]).find(x=>x.compId===cid&&x.studentId===sid&&x.judgeId===jid); return m?m.points:''; };
+const totalFor = (cid,sid) => { let t=0,has=false; (S.marks||[]).forEach(m=>{ if(m.compId===cid&&m.studentId===sid){ t+=parseFloat(m.points)||0; has=true; } }); return has?Math.round(t*100)/100:null; };
+const marksBySid = (cid,sid) => (S.marks||[]).filter(m=>m.compId===cid&&m.studentId===sid);
+function rankComp(cid) {
+  const list=S.results.filter(r=>r.compId===cid&&r.points!==''&&r.points!=null);
+  list.sort((a,b)=>(parseFloat(b.points)||0)-(parseFloat(a.points)||0));
+  list.forEach((r,i)=>{ r.position=(i>0&&parseFloat(r.points)===parseFloat(list[i-1].points))?list[i-1].position:(i+1); });
+}
 const stCntByCat = cid => S.students.filter(s=>s.category===cid).length;
 const compCntByCat = cid => S.competitions.filter(c=>c.category===cid).length;
 
@@ -3226,6 +3240,7 @@ window.delTeam = function(id) {
   S.registrations=S.registrations.filter(r=>!sids.includes(r.studentId));
   S.attendance=S.attendance.filter(a=>!sids.includes(a.studentId));
   S.results=S.results.filter(r=>!sids.includes(r.studentId));
+  S.marks=(S.marks||[]).filter(m=>!sids.includes(m.studentId));
   S.bonus=S.bonus.filter(b=>b.teamId!==id);
   S.teams=S.teams.filter(t=>t.id!==id);
   saveState();renderMain();toast('Team deleted','success');
@@ -3287,6 +3302,17 @@ window.openJudgeModal = function(eid) {
 
 window.delJudge = function(id) {
   if(!confirm('Delete this judge login?'))return;
+  const affected={};
+  (S.marks||[]).forEach(m=>{ if(m.judgeId===id)affected[m.compId+'|'+m.studentId]=1; });
+  S.marks=(S.marks||[]).filter(m=>m.judgeId!==id);
+  Object.keys(affected).forEach(k=>{
+    const p=k.split('|'),cid=p[0],sid=p[1];
+    const t=totalFor(cid,sid);
+    const ix=S.results.findIndex(r=>r.compId===cid&&r.studentId===sid);
+    if(t==null){ if(ix>-1)S.results.splice(ix,1); }
+    else if(ix>-1){ S.results[ix].points=t; }
+    rankComp(cid);
+  });
   S.judges=S.judges.filter(j=>j.id!==id);
   saveState();renderMain();toast('Judge deleted','success');
 };
@@ -3337,12 +3363,13 @@ window.openCompModal = function(eid) {
       '<div class="fg"><label>Max Per Team</label><input type="number" id="mCM" value="'+(c?c.maxPerTeam:3)+'" min="1"></div>'+
       '<div class="fg"><label>Type</label><select id="mCT"><option value="stage"'+(c&&c.type==='stage'?' selected':'')+'>🎭 Stage</option><option value="nonstage"'+(c&&c.type==='nonstage'?' selected':'')+'>📝 Non-Stage</option></select></div>'+
     '</div>'+
+    '<div class="fg"><label>Max Marks per Student (0 or blank = 100)</label><input type="number" id="mMM" value="'+(c&&c.maxMarks?c.maxMarks:'')+'" min="0" placeholder="e.g. 100"></div>'+
     '<div class="fg"><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:.9rem"><input type="checkbox" id="mCG"'+(c&&c.isGroup?' checked':'')+' style="width:16px;height:16px"> Group Competition</label></div>'+
     '<div class="fg" id="mGSW" style="display:'+(c&&c.isGroup?'block':'none')+'"><label>Group Size</label><input type="number" id="mCGS" value="'+(c?c.groupSize||2:2)+'" min="2"></div>',
   function() {
     const nm=document.getElementById('mCN').value.trim();
     if(!nm){toast('Enter competition name','error');return false;}
-    const data={name:nm,category:document.getElementById('mCC').value,maxPerTeam:parseInt(document.getElementById('mCM').value)||1,type:document.getElementById('mCT').value,isGroup:document.getElementById('mCG').checked,groupSize:parseInt(document.getElementById('mCGS').value)||2};
+    const data={name:nm,category:document.getElementById('mCC').value,maxPerTeam:parseInt(document.getElementById('mCM').value)||1,type:document.getElementById('mCT').value,isGroup:document.getElementById('mCG').checked,groupSize:parseInt(document.getElementById('mCGS').value)||2,maxMarks:parseFloat(document.getElementById('mMM').value)||0};
     if(eid)Object.assign(c,data);
     else S.competitions.push({id:uid(),...data});
     saveState();renderMain();toast('Competition saved! 💾','success');
@@ -3358,6 +3385,7 @@ window.delComp = function(id) {
   S.registrations=S.registrations.filter(r=>r.compId!==id);
   S.attendance=S.attendance.filter(a=>a.compId!==id);
   S.results=S.results.filter(r=>r.compId!==id);
+  S.marks=(S.marks||[]).filter(m=>m.compId!==id);
   S.competitions=S.competitions.filter(c=>c.id!==id);
   saveState();renderMain();toast('Competition deleted','success');
 };
@@ -3494,7 +3522,9 @@ function drawResults(mc, cid) {
   const regs=compRegs(cid),results=compRes(cid);
   const resBySid={};results.forEach(r=>resBySid[r.studentId]=r);
   const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
-  const lastJudge=isJudge?judgeObj.name:(results.length?(results[0].judge||''):'');
+  let cols=compJudges(cid);
+  if(!cols.length)cols=[{id:'__admin__',name:'Marks'}];
+  const max=compMax(comp),pjm=perJudgeMax(comp);
   const ranked=results.slice().filter(r=>r.position).sort((a,b)=>(parseInt(a.position)||99)-(parseInt(b.position)||99));
 
   mc.innerHTML=
@@ -3504,11 +3534,10 @@ function drawResults(mc, cid) {
       '<span class="badge bc">'+gCatN(comp.category)+'</span>'+
       '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
     '</div>'+
-    '<div class="infobox"><span class="ii">ℹ️</span>Enter points (and grade, optional) for each participant below, then Save. 1st, 2nd, 3rd... positions are calculated automatically — highest points gets 1st place. Leave points empty to skip a student for now.</div>'+
-    '<div class="glass" style="padding:16px;margin-bottom:16px;max-width:320px">'+
-      '<div class="fg" style="margin-bottom:0"><label>Judge Name'+(isJudge?'':' (applies to all)')+'</label><input id="rJdgAll" '+(isJudge?'disabled':'')+' placeholder="Judge name" value="'+esc(lastJudge)+'"></div>'+
-    '</div>'+
-    '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th><th style="width:100px">Points</th><th style="width:100px">Grade</th><th style="width:90px">Position</th></tr></thead><tbody>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Each judge enters marks in their own column (max '+pjDisp(pjm)+' per judge). Totals add up to '+pjDisp(max)+' and positions rank automatically from the total. Leave a box empty to skip.</div>'+
+    '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th>'+
+      cols.map(j=>'<th>'+esc(j.name)+'<br><span style="font-weight:500;color:var(--t3);font-size:.7rem">max '+pjDisp(pjm)+'</span></th>').join('')+
+      '<th style="width:80px">Grade</th><th style="width:90px">Total / '+pjDisp(max)+'</th><th style="width:90px">Position</th></tr></thead><tbody>'+
       regSts.map(s=>{
         const tm=gT(s.teamId);
         const r=resBySid[s.id];
@@ -3516,14 +3545,19 @@ function drawResults(mc, cid) {
           '<td><span class="badge bpt">'+esc(s.chest)+'</span></td>'+
           '<td><strong>'+esc(s.name)+'</strong></td>'+
           '<td style="color:var(--t3)">'+(tm?esc(tm.name):'-')+'</td>'+
-          '<td><input type="number" id="pts_'+s.id+'" value="'+(r?r.points:'')+'" placeholder="0" style="width:80px"></td>'+
-          '<td><input id="grd_'+s.id+'" value="'+(r?esc(r.grade||''):'')+'" placeholder="A+" style="width:80px"></td>'+
+          cols.map(j=>{
+            const dis=(isJudge&&j.id!==CU.judgeId)?' disabled':'';
+            const v=markVal(cid,s.id,j.id);
+            return '<td><input type="number" min="0" max="'+pjm+'" id="mk_'+s.id+'_'+j.id+'" value="'+v+'" placeholder="0" style="width:76px"'+dis+' oninput="updTot(\''+cid+'\')"></td>';
+          }).join('')+
+          '<td><input id="grd_'+s.id+'" value="'+(r?esc(r.grade||''):'')+'" placeholder="A+" style="width:76px"></td>'+
+          '<td id="tot_'+s.id+'" style="font-weight:800">'+(r?r.points+' / '+pjDisp(max):'-')+'</td>'+
           '<td id="pos_'+s.id+'" style="font-weight:700">'+(r?posLabel(r.position):'-')+'</td>'+
         '</tr>';
       }).join('')+
-      (regSts.length?'':'<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px">No participants registered for this competition</td></tr>')+
+      (regSts.length?'':'<tr><td colspan="'+(6+cols.length)+'" style="text-align:center;color:var(--t3);padding:20px">No participants registered for this competition</td></tr>')+
     '</tbody></table></div>'+
-    (regSts.length?'<button class="btn-success" style="margin-top:16px" onclick="saveAllRes(\''+cid+'\')">💾 Save &amp; Auto-Rank</button>':'')+
+    (regSts.length?'<button class="btn-success" style="margin-top:16px" onclick="saveAllRes(\''+cid+'\')">💾 Save Marks &amp; Auto-Rank</button>':'')+
     (ranked.length?'<h3 style="margin:26px 0 12px">🏅 Current Rankings</h3><div id="resList">'+
       ranked.map(r=>{
         const st=gS(r.studentId),tm=st?gT(st.teamId):null;
@@ -3540,32 +3574,74 @@ function drawResults(mc, cid) {
     '</div>':'');
 }
 
+window.updTot = function(cid) {
+  const comp=gC(cid);if(!comp)return;
+  const max=compMax(comp);
+  let cols=compJudges(cid);
+  if(!cols.length)cols=[{id:'__admin__'}];
+  compRegs(cid).forEach(r=>{
+    const st=gS(r.studentId);if(!st)return;
+    let t=0,has=false;
+    cols.forEach(j=>{
+      const el=document.getElementById('mk_'+st.id+'_'+j.id);
+      if(el&&(el.value||'').trim()!==''){t+=parseFloat(el.value)||0;has=true;}
+    });
+    const cell=document.getElementById('tot_'+st.id);
+    if(cell)cell.textContent=has?((Math.round(t*100)/100)+' / '+pjDisp(max)):'-';
+  });
+};
+
 window.saveAllRes = function(cid) {
+  const comp=gC(cid);if(!comp)return;
+  let cols=compJudges(cid);
+  if(!cols.length)cols=[{id:'__admin__',name:'Marks'}];
+  const max=compMax(comp),pjm=perJudgeMax(comp);
   const regs=compRegs(cid);
   const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
-  const judge=(document.getElementById('rJdgAll').value||'').trim();
-  const entries=[];
+  const isJudge=CU?.type==='judge';
+  for(const s of regSts){
+    for(const j of cols){
+      if(isJudge&&j.id!==CU.judgeId)continue;
+      const el=document.getElementById('mk_'+s.id+'_'+j.id);
+      if(!el)continue;
+      const v=(el.value||'').trim();
+      if(v!==''){
+        const n=parseFloat(v);
+        if(isNaN(n)||n<0||n>pjm){toast(j.name+': marks for '+s.name+' must be between 0 and '+pjDisp(pjm),'error');return;}
+      }
+    }
+  }
   regSts.forEach(s=>{
-    const ptsEl=document.getElementById('pts_'+s.id);
+    let removedAny=false;
+    cols.forEach(j=>{
+      if(isJudge&&j.id!==CU.judgeId)return;
+      const el=document.getElementById('mk_'+s.id+'_'+j.id);
+      if(!el)return;
+      const v=(el.value||'').trim();
+      const ix=(S.marks||[]).findIndex(m=>m.compId===cid&&m.studentId===s.id&&m.judgeId===j.id);
+      if(v===''){if(ix>-1){S.marks.splice(ix,1);removedAny=true;}return;}
+      const pts=Math.round((parseFloat(v)||0)*100)/100;
+      if(ix>-1){S.marks[ix].points=pts;S.marks[ix].judgeName=j.name;}
+      else S.marks.push({id:uid(),compId:cid,studentId:s.id,judgeId:j.id,judgeName:j.name,points:pts});
+    });
+    const all=marksBySid(cid,s.id);
     const grdEl=document.getElementById('grd_'+s.id);
-    const ptsVal=(ptsEl.value||'').trim();
-    if(ptsVal===''){
-      S.results=S.results.filter(r=>!(r.compId===cid&&r.studentId===s.id));
+    const grade=grdEl?(grdEl.value||'').trim():'';
+    if(!all.length){
+      const ri=S.results.findIndex(r=>r.compId===cid&&r.studentId===s.id);
+      // Keep legacy totals (saved before per-judge marks existed) unless a mark was just cleared.
+      if(ri>-1&&removedAny)S.results.splice(ri,1);
       return;
     }
-    entries.push({sid:s.id,points:parseInt(ptsVal)||0,grade:(grdEl.value||'').trim()});
+    const tot=Math.round(all.reduce((a,m)=>a+(parseFloat(m.points)||0),0)*100)/100;
+    const names=[...new Set(all.map(m=>m.judgeName||((gJ(m.judgeId)||{}).name||'')))].filter(Boolean).join(', ');
+    let r=S.results.find(x=>x.compId===cid&&x.studentId===s.id);
+    if(!r){r={id:uid(),compId:cid,studentId:s.id};S.results.push(r);}
+    r.points=tot;r.grade=grade;r.judge=names;
   });
-  if(!entries.length){toast('Enter points for at least one participant','error');return;}
-  entries.sort((a,b)=>b.points-a.points);
-  entries.forEach((e,i)=>{
-    e.position=(i>0&&e.points===entries[i-1].points)?entries[i-1].position:(i+1);
-  });
-  entries.forEach(e=>{
-    let r=S.results.find(x=>x.compId===cid&&x.studentId===e.sid);
-    if(!r){r={id:uid(),compId:cid,studentId:e.sid};S.results.push(r);}
-    r.points=e.points;r.grade=e.grade;r.judge=judge;r.position=e.position;
-  });
-  saveState();toast('Results saved — positions auto-ranked 🏅','success');renderMain();
+  if(!S.results.some(r=>r.compId===cid)){toast('Enter marks for at least one participant','error');return;}
+  rankComp(cid);
+  saveState();toast('Marks saved — totals out of '+pjDisp(max)+', positions auto-ranked 🏅','success');renderMain();
 };
 
 /* ================================================================
@@ -4014,6 +4090,7 @@ window.importData = function() {
       if(!confirm('This will REPLACE ALL existing data. Are you sure?'))return;
       if(!data.schedule)data.schedule=[];
       if(!data.bonus)data.bonus=[];
+      if(!data.marks)data.marks=[];
       S=data;saveState();CU=null;render();
       toast('Data imported successfully! 💾','success');
     }catch(err){toast('Invalid JSON file','error');}
@@ -4284,6 +4361,7 @@ window.delSt = function(sid,tid) {
   S.registrations=S.registrations.filter(r=>r.studentId!==sid);
   S.attendance=S.attendance.filter(a=>a.studentId!==sid);
   S.results=S.results.filter(r=>r.studentId!==sid);
+  S.marks=(S.marks||[]).filter(m=>m.studentId!==sid);
   saveState();renderMain();toast('Student deleted','success');
 };
 
@@ -4486,7 +4564,7 @@ function tImportExport(mc,team) {
 
 window.exportTeam = function(tid) {
   const t=gT(tid),sts=tmSts(tid),sids=sts.map(s=>s.id);
-  const data={team:{name:t.name},students:sts,registrations:S.registrations.filter(r=>sids.includes(r.studentId)),results:S.results.filter(r=>sids.includes(r.studentId)),attendance:S.attendance.filter(a=>sids.includes(a.studentId))};
+  const data={team:{name:t.name},students:sts,registrations:S.registrations.filter(r=>sids.includes(r.studentId)),results:S.results.filter(r=>sids.includes(r.studentId)),attendance:S.attendance.filter(a=>sids.includes(a.studentId)),marks:(S.marks||[]).filter(m=>sids.includes(m.studentId))};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='team_'+t.name.replace(/\s+/g,'_')+'_backup.json';a.click();
   toast('Team data exported! 📥','success');
@@ -4506,6 +4584,7 @@ window.importTeam = function(tid) {
       S.registrations=S.registrations.filter(r=>!old.includes(r.studentId));
       S.attendance=S.attendance.filter(a=>!old.includes(a.studentId));
       S.results=S.results.filter(r=>!old.includes(r.studentId));
+      S.marks=(S.marks||[]).filter(m=>!old.includes(m.studentId));
       const idMap={};
       data.students.forEach(s=>{const ni=uid();idMap[s.id]=ni;S.students.push({...s,id:ni,teamId:tid});});
       if(data.registrations)data.registrations.forEach(r=>{const ni=idMap[r.studentId];if(ni&&gC(r.compId))S.registrations.push({...r,id:uid(),studentId:ni});});
