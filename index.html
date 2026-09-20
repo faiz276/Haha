@@ -3656,7 +3656,7 @@ function aScoreboard(mc) {
     let cft='';
     for(let i=0;i<30;i++)cft+='<div class="cft" style="left:'+Math.random()*100+'%;background:'+colors[i%colors.length]+';animation-delay:'+Math.random()*5+'s;animation-duration:'+(3+Math.random()*4)+'s;width:'+(6+Math.random()*10)+'px;height:'+(6+Math.random()*10)+'px;border-radius:'+(Math.random()>.5?'50%':'3px')+'"></div>';
     mc.innerHTML=cft+
-      '<div class="sh"><h2>🏅 Scoreboard</h2></div>'+
+      '<div class="sh"><h2>🏅 Scoreboard</h2><a href="display.html" target="_blank" style="text-decoration:none"><button class="btn-primary" style="margin-left:auto">📺 TV Display</button></a></div>'+
       '<div class="tabs">'+cats.map(c=>'<div class="tab'+(flt===c.id?' active':'')+'" data-sb="'+c.id+'">'+esc(c.name)+'</div>').join('')+'</div>'+
       '<div class="ribbon">🏆 '+(flt==='overall'?'Overall':gCatN(flt))+' Rankings 🏆</div>'+
       teams.map((t,i)=>{
