@@ -1,0 +1,47 @@
+# Changes — Meelad Programme Helper (updated 2026-09-20)
+
+Base: user's `public_html (5).zip` upload, plus the fixes below.
+
+## 1. Multi-judge marking (totals out of 100) — `index.html`
+- Before: one shared Points box per student; last save overwrote everything.
+- Now: every judge assigned to a competition gets their **own marks column** in
+  Judge Panel / Results (`compJudges()` = judges assigned to that comp).
+- Each judge's max = competition max ÷ number of judges (default max 100, so
+  2 judges → 50/50, 3 judges → 33.33 each). Boxes validate 0–max and block
+  Save with an error naming the judge + student.
+- A logged-in judge can edit **only their own column** (other columns disabled);
+  admin sees/edits all columns.
+- Marks stored per judge in new `S.marks[]` (`{compId, studentId, judgeId,
+  judgeName, points}`); student **total = sum of all judges' marks**, positions
+  auto-ranked from totals with tie-sharing (`rankComp()`).
+- Competition Add/Edit modal has a new **"Max Marks per Student"** field
+  (blank/0 = 100).
+- Grade stays free text and does not affect ranking.
+- Old pre-change totals are kept as legacy results until per-judge marks are
+  entered for that student.
+- Cleanup paths updated: deleting a team/student/competition/judge also
+  removes/recomputes the related per-judge marks. Full backup import/export
+  and team export include `marks`.
+
+## 2. TV scoreboard display page — `display.html` (new file)
+- Separate full-screen page showing **Overall Rankings only** (no Prathiba
+  awards): dark theme, large fonts, gold/silver/bronze top-3 rows, event name,
+  logo, LIVE clock.
+- Auto-refreshes from `api.php` every 10s (+ manual Refresh, Fullscreen
+  buttons); falls back to the TV browser's cached copy if offline.
+- Scoreboard tab in the admin app has a new **📺 TV Display** button that opens
+  it in a new tab.
+
+## Files in the zip
+- `index.html`, `poster.html`, `display.html` (new), `api.php`
+- `data/state.json` (your current data), `data/.htaccess`, `data/index.php`
+
+## Deploy notes
+- Upload the zip contents to `public_html`, preserving the `data/` folder.
+- `API_KEY` in `api.php` must match `API_KEY` in `index.html` /
+  `display.html` (currently the default `change-me-please` — set a private
+  value in all three files).
+- PHP's built-in/dev servers ignore `data/.htaccess`, so on real hosting
+  (Apache/cPanel) the file protection applies; still, all passwords in
+  `data/state.json` are plaintext — rotate the admin/team/judge passwords
+  after deploying.
