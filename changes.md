@@ -6,14 +6,16 @@ Base: user's `public_html (5).zip` upload, plus the fixes below.
 - Before: one shared Points box per student; last save overwrote everything.
 - Now: every judge assigned to a competition gets their **own marks column** in
   Judge Panel / Results (`compJudges()` = judges assigned to that comp).
-- Each judge's max = competition max ÷ number of judges (default max 100, so
-  2 judges → 50/50, 3 judges → 33.33 each). Boxes validate 0–max and block
-  Save with an error naming the judge + student.
+- EVERY judge marks **out of the full competition max** (default 100) in
+  their own column — e.g. Judge 1 gives 60, Judge 2 gives 70. Boxes validate
+  0–max and block Save with an error naming the judge + student.
 - A logged-in judge can edit **only their own column** (other columns disabled);
   admin sees/edits all columns.
 - Marks stored per judge in new `S.marks[]` (`{compId, studentId, judgeId,
-  judgeName, points}`); student **total = sum of all judges' marks**, positions
-  auto-ranked from totals with tie-sharing (`rankComp()`).
+  judgeName, points}`); student **final = average of all judges' marks**
+  (60 + 70 = 130 ÷ 2 = **65**; 3 judges → ÷ 3, and so on — empty boxes are
+  skipped, not counted as zero). Positions auto-ranked from the final with
+  tie-sharing (`rankComp()`).
 - Competition Add/Edit modal has a new **"Max Marks per Student"** field
   (blank/0 = 100).
 - Grade stays free text and does not affect ranking.

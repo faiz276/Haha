@@ -2866,10 +2866,10 @@ const stRes = sid => S.results.filter(r=>r.studentId===sid);
 const compRes = cid => S.results.filter(r=>r.compId===cid);
 const compJudges = cid => S.judges.filter(j=>(!j.compIds||!j.compIds.length)||j.compIds.includes(cid));
 const compMax = c => (c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100);
-const perJudgeMax = c => { const n=compJudges(c.id).length; return n?compMax(c)/n:compMax(c); };
+const avgFor = (cid,sid) => { let t=0,n=0; (S.marks||[]).forEach(m=>{ if(m.compId===cid&&m.studentId===sid){ t+=parseFloat(m.points)||0; n++; } }); return n?Math.round((t/n)*100)/100:null; };
 const pjDisp = v => String(Math.round(v*100)/100);
 const markVal = (cid,sid,jid) => { const m=(S.marks||[]).find(x=>x.compId===cid&&x.studentId===sid&&x.judgeId===jid); return m?m.points:''; };
-const totalFor = (cid,sid) => { let t=0,has=false; (S.marks||[]).forEach(m=>{ if(m.compId===cid&&m.studentId===sid){ t+=parseFloat(m.points)||0; has=true; } }); return has?Math.round(t*100)/100:null; };
+
 const marksBySid = (cid,sid) => (S.marks||[]).filter(m=>m.compId===cid&&m.studentId===sid);
 function rankComp(cid) {
   const list=S.results.filter(r=>r.compId===cid&&r.points!==''&&r.points!=null);
@@ -3307,7 +3307,7 @@ window.delJudge = function(id) {
   S.marks=(S.marks||[]).filter(m=>m.judgeId!==id);
   Object.keys(affected).forEach(k=>{
     const p=k.split('|'),cid=p[0],sid=p[1];
-    const t=totalFor(cid,sid);
+    const t=avgFor(cid,sid);
     const ix=S.results.findIndex(r=>r.compId===cid&&r.studentId===sid);
     if(t==null){ if(ix>-1)S.results.splice(ix,1); }
     else if(ix>-1){ S.results[ix].points=t; }
@@ -3524,7 +3524,7 @@ function drawResults(mc, cid) {
   const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
   let cols=compJudges(cid);
   if(!cols.length)cols=[{id:'__admin__',name:'Marks'}];
-  const max=compMax(comp),pjm=perJudgeMax(comp);
+  const max=compMax(comp);
   const ranked=results.slice().filter(r=>r.position).sort((a,b)=>(parseInt(a.position)||99)-(parseInt(b.position)||99));
 
   mc.innerHTML=
@@ -3534,10 +3534,10 @@ function drawResults(mc, cid) {
       '<span class="badge bc">'+gCatN(comp.category)+'</span>'+
       '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
     '</div>'+
-    '<div class="infobox"><span class="ii">ℹ️</span>Each judge enters marks in their own column (max '+pjDisp(pjm)+' per judge). Totals add up to '+pjDisp(max)+' and positions rank automatically from the total. Leave a box empty to skip.</div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Each judge marks out of '+pjDisp(max)+' in their own column. Final = average of all judges\' marks (e.g. 60 + 70 = 130 ÷ 2 = 65). Positions rank automatically from the final. Leave a box empty to skip.</div>'+
     '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th>'+
-      cols.map(j=>'<th>'+esc(j.name)+'<br><span style="font-weight:500;color:var(--t3);font-size:.7rem">max '+pjDisp(pjm)+'</span></th>').join('')+
-      '<th style="width:80px">Grade</th><th style="width:90px">Total / '+pjDisp(max)+'</th><th style="width:90px">Position</th></tr></thead><tbody>'+
+      cols.map(j=>'<th>'+esc(j.name)+'<br><span style="font-weight:500;color:var(--t3);font-size:.7rem">out of '+pjDisp(max)+'</span></th>').join('')+
+      '<th style="width:80px">Grade</th><th style="width:90px">Final / '+pjDisp(max)+'</th><th style="width:90px">Position</th></tr></thead><tbody>'+
       regSts.map(s=>{
         const tm=gT(s.teamId);
         const r=resBySid[s.id];
@@ -3548,7 +3548,7 @@ function drawResults(mc, cid) {
           cols.map(j=>{
             const dis=(isJudge&&j.id!==CU.judgeId)?' disabled':'';
             const v=markVal(cid,s.id,j.id);
-            return '<td><input type="number" min="0" max="'+pjm+'" id="mk_'+s.id+'_'+j.id+'" value="'+v+'" placeholder="0" style="width:76px"'+dis+' oninput="updTot(\''+cid+'\')"></td>';
+            return '<td><input type="number" min="0" max="'+max+'" id="mk_'+s.id+'_'+j.id+'" value="'+v+'" placeholder="0" style="width:76px"'+dis+' oninput="updTot(\''+cid+'\')"></td>';
           }).join('')+
           '<td><input id="grd_'+s.id+'" value="'+(r?esc(r.grade||''):'')+'" placeholder="A+" style="width:76px"></td>'+
           '<td id="tot_'+s.id+'" style="font-weight:800">'+(r?r.points+' / '+pjDisp(max):'-')+'</td>'+
@@ -3581,13 +3581,13 @@ window.updTot = function(cid) {
   if(!cols.length)cols=[{id:'__admin__'}];
   compRegs(cid).forEach(r=>{
     const st=gS(r.studentId);if(!st)return;
-    let t=0,has=false;
+    let t=0,n=0;
     cols.forEach(j=>{
       const el=document.getElementById('mk_'+st.id+'_'+j.id);
-      if(el&&(el.value||'').trim()!==''){t+=parseFloat(el.value)||0;has=true;}
+      if(el&&(el.value||'').trim()!==''){t+=parseFloat(el.value)||0;n++;}
     });
     const cell=document.getElementById('tot_'+st.id);
-    if(cell)cell.textContent=has?((Math.round(t*100)/100)+' / '+pjDisp(max)):'-';
+    if(cell)cell.textContent=n?((Math.round((t/n)*100)/100)+' / '+pjDisp(max)):'-';
   });
 };
 
@@ -3595,7 +3595,7 @@ window.saveAllRes = function(cid) {
   const comp=gC(cid);if(!comp)return;
   let cols=compJudges(cid);
   if(!cols.length)cols=[{id:'__admin__',name:'Marks'}];
-  const max=compMax(comp),pjm=perJudgeMax(comp);
+  const max=compMax(comp);
   const regs=compRegs(cid);
   const regSts=regs.map(r=>gS(r.studentId)).filter(Boolean);
   const isJudge=CU?.type==='judge';
@@ -3607,7 +3607,7 @@ window.saveAllRes = function(cid) {
       const v=(el.value||'').trim();
       if(v!==''){
         const n=parseFloat(v);
-        if(isNaN(n)||n<0||n>pjm){toast(j.name+': marks for '+s.name+' must be between 0 and '+pjDisp(pjm),'error');return;}
+        if(isNaN(n)||n<0||n>max){toast(j.name+': marks for '+s.name+' must be between 0 and '+pjDisp(max),'error');return;}
       }
     }
   }
@@ -3633,7 +3633,7 @@ window.saveAllRes = function(cid) {
       if(ri>-1&&removedAny)S.results.splice(ri,1);
       return;
     }
-    const tot=Math.round(all.reduce((a,m)=>a+(parseFloat(m.points)||0),0)*100)/100;
+    const tot=Math.round((all.reduce((a,m)=>a+(parseFloat(m.points)||0),0)/all.length)*100)/100;
     const names=[...new Set(all.map(m=>m.judgeName||((gJ(m.judgeId)||{}).name||'')))].filter(Boolean).join(', ');
     let r=S.results.find(x=>x.compId===cid&&x.studentId===s.id);
     if(!r){r={id:uid(),compId:cid,studentId:s.id};S.results.push(r);}
@@ -3641,7 +3641,7 @@ window.saveAllRes = function(cid) {
   });
   if(!S.results.some(r=>r.compId===cid)){toast('Enter marks for at least one participant','error');return;}
   rankComp(cid);
-  saveState();toast('Marks saved — totals out of '+pjDisp(max)+', positions auto-ranked 🏅','success');renderMain();
+  saveState();toast('Marks saved — final is the average out of '+pjDisp(max)+', positions auto-ranked 🏅','success');renderMain();
 };
 
 /* ================================================================
