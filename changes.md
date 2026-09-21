@@ -2,7 +2,7 @@
 
 Base: user's `public_html (5).zip` upload, plus the fixes below.
 
-## 1. Multi-judge marking (totals out of 100) — `index.html`
+## 1. Multi-judge marking (final out of 10) — `index.html`
 - Before: one shared Points box per student; last save overwrote everything.
 - Now: every judge assigned to a competition gets their **own marks column** in
   Judge Panel / Results (`compJudges()` = judges assigned to that comp).
@@ -12,12 +12,17 @@ Base: user's `public_html (5).zip` upload, plus the fixes below.
 - A logged-in judge can edit **only their own column** (other columns disabled);
   admin sees/edits all columns.
 - Marks stored per judge in new `S.marks[]` (`{compId, studentId, judgeId,
-  judgeName, points}`); student **final = average of all judges' marks**
-  (60 + 70 = 130 ÷ 2 = **65**; 3 judges → ÷ 3, and so on — empty boxes are
-  skipped, not counted as zero). Positions auto-ranked from the final with
-  tie-sharing (`rankComp()`).
-- Competition Add/Edit modal has a new **"Max Marks per Student"** field
-  (blank/0 = 100).
+  judgeName, points}`); each judge marks **out of the full competition max**
+  (default 100). Student **final = average scaled to 10**:
+  60 + 70 = 130 ÷ 2 = 65 → 65 × 10 ÷ 100 = **6.5**; 3 judges → ÷ 3 then
+  × 10 ÷ max, and so on — empty boxes are skipped, not counted as zero.
+  Positions auto-ranked from the final with tie-sharing (`rankComp()`).
+- Competition Add/Edit modal has a new **"Max Marks per Judge"** field
+  (blank/0 = 100 — the final always auto-scales to 10).
+- One-time migration (`resScale10` flag in `loadState`/`hydrateFromServer`/
+  import): results saved earlier at 100-scale are converted to 10-scale
+  (`points × 10 ÷ comp max`), so old scoreboards keep their order with the
+  new numbers. Team/student/scoreboard totals now sum these /10 finals.
 - Grade stays free text and does not affect ranking.
 - Old pre-change totals are kept as legacy results until per-judge marks are
   entered for that student.

@@ -2653,7 +2653,7 @@ function defaultState() {
     ],
     teams:[],students:[],competitions:[],judges:[],marks:[],
     registrations:[],attendance:[],results:[],
-    bonus:[],locked:false,theme:'light',schedule:[]
+    bonus:[],locked:false,theme:'light',schedule:[],resScale10:true
   };
 }
 
@@ -2668,6 +2668,7 @@ function loadState() {
       if (!p.attendance) p.attendance = [];
       if (!p.judges) p.judges = [];
       if (!p.marks) p.marks = [];
+      if (!p.resScale10) scaleResults10(p);
       if (!p.config) p.config = def.config;
       if (!p.config.accentColor) p.config.accentColor = '#ff8c00';
       if (!p.config.maxProgPerCat) p.config.maxProgPerCat = 0;
@@ -2758,6 +2759,7 @@ function hydrateFromServer() {
       if (!serverData.bonus) serverData.bonus = [];
       if (!serverData.attendance) serverData.attendance = [];
       if (!serverData.marks) serverData.marks = [];
+      if (!serverData.resScale10) scaleResults10(serverData);
       S = serverData;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
       render();
@@ -2866,7 +2868,8 @@ const stRes = sid => S.results.filter(r=>r.studentId===sid);
 const compRes = cid => S.results.filter(r=>r.compId===cid);
 const compJudges = cid => S.judges.filter(j=>(!j.compIds||!j.compIds.length)||j.compIds.includes(cid));
 const compMax = c => (c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100);
-const avgFor = (cid,sid) => { let t=0,n=0; (S.marks||[]).forEach(m=>{ if(m.compId===cid&&m.studentId===sid){ t+=parseFloat(m.points)||0; n++; } }); return n?Math.round((t/n)*100)/100:null; };
+const finalFor = (cid,sid) => { const comp=gC(cid),m=compMax(comp); let t=0,n=0; (S.marks||[]).forEach(mk=>{ if(mk.compId===cid&&mk.studentId===sid){ t+=parseFloat(mk.points)||0; n++; } }); return n?Math.round((t/n*10/m)*100)/100:null; };
+function scaleResults10(d) { (d.results||[]).forEach(r=>{ const c=(d.competitions||[]).find(x=>x.id===r.compId); const m=(c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100); const v=parseFloat(r.points); if(!isNaN(v))r.points=Math.round((v*10/m)*100)/100; }); d.resScale10=true; }
 const pjDisp = v => String(Math.round(v*100)/100);
 const markVal = (cid,sid,jid) => { const m=(S.marks||[]).find(x=>x.compId===cid&&x.studentId===sid&&x.judgeId===jid); return m?m.points:''; };
 
@@ -3307,7 +3310,7 @@ window.delJudge = function(id) {
   S.marks=(S.marks||[]).filter(m=>m.judgeId!==id);
   Object.keys(affected).forEach(k=>{
     const p=k.split('|'),cid=p[0],sid=p[1];
-    const t=avgFor(cid,sid);
+    const t=finalFor(cid,sid);
     const ix=S.results.findIndex(r=>r.compId===cid&&r.studentId===sid);
     if(t==null){ if(ix>-1)S.results.splice(ix,1); }
     else if(ix>-1){ S.results[ix].points=t; }
@@ -3363,7 +3366,7 @@ window.openCompModal = function(eid) {
       '<div class="fg"><label>Max Per Team</label><input type="number" id="mCM" value="'+(c?c.maxPerTeam:3)+'" min="1"></div>'+
       '<div class="fg"><label>Type</label><select id="mCT"><option value="stage"'+(c&&c.type==='stage'?' selected':'')+'>🎭 Stage</option><option value="nonstage"'+(c&&c.type==='nonstage'?' selected':'')+'>📝 Non-Stage</option></select></div>'+
     '</div>'+
-    '<div class="fg"><label>Max Marks per Student (0 or blank = 100)</label><input type="number" id="mMM" value="'+(c&&c.maxMarks?c.maxMarks:'')+'" min="0" placeholder="e.g. 100"></div>'+
+    '<div class="fg"><label>Max Marks per Judge (0 or blank = 100 — final auto-scales to 10)</label><input type="number" id="mMM" value="'+(c&&c.maxMarks?c.maxMarks:'')+'" min="0" placeholder="e.g. 100"></div>'+
     '<div class="fg"><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:.9rem"><input type="checkbox" id="mCG"'+(c&&c.isGroup?' checked':'')+' style="width:16px;height:16px"> Group Competition</label></div>'+
     '<div class="fg" id="mGSW" style="display:'+(c&&c.isGroup?'block':'none')+'"><label>Group Size</label><input type="number" id="mCGS" value="'+(c?c.groupSize||2:2)+'" min="2"></div>',
   function() {
@@ -3534,10 +3537,10 @@ function drawResults(mc, cid) {
       '<span class="badge bc">'+gCatN(comp.category)+'</span>'+
       '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
     '</div>'+
-    '<div class="infobox"><span class="ii">ℹ️</span>Each judge marks out of '+pjDisp(max)+' in their own column. Final = average of all judges\' marks (e.g. 60 + 70 = 130 ÷ 2 = 65). Positions rank automatically from the final. Leave a box empty to skip.</div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Each judge marks out of '+pjDisp(max)+' in their own column. Final = average scaled to 10 (e.g. 60 + 70 = 130 ÷ 2 = 65 → 65 × 10 ÷ 100 = 6.5). Positions rank automatically from the final. Leave a box empty to skip.</div>'+
     '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th>'+
       cols.map(j=>'<th>'+esc(j.name)+'<br><span style="font-weight:500;color:var(--t3);font-size:.7rem">out of '+pjDisp(max)+'</span></th>').join('')+
-      '<th style="width:80px">Grade</th><th style="width:90px">Final / '+pjDisp(max)+'</th><th style="width:90px">Position</th></tr></thead><tbody>'+
+      '<th style="width:80px">Grade</th><th style="width:90px">Final / 10</th><th style="width:90px">Position</th></tr></thead><tbody>'+
       regSts.map(s=>{
         const tm=gT(s.teamId);
         const r=resBySid[s.id];
@@ -3551,7 +3554,7 @@ function drawResults(mc, cid) {
             return '<td><input type="number" min="0" max="'+max+'" id="mk_'+s.id+'_'+j.id+'" value="'+v+'" placeholder="0" style="width:76px"'+dis+' oninput="updTot(\''+cid+'\')"></td>';
           }).join('')+
           '<td><input id="grd_'+s.id+'" value="'+(r?esc(r.grade||''):'')+'" placeholder="A+" style="width:76px"></td>'+
-          '<td id="tot_'+s.id+'" style="font-weight:800">'+(r?r.points+' / '+pjDisp(max):'-')+'</td>'+
+          '<td id="tot_'+s.id+'" style="font-weight:800">'+(r?r.points+' / 10':'-')+'</td>'+
           '<td id="pos_'+s.id+'" style="font-weight:700">'+(r?posLabel(r.position):'-')+'</td>'+
         '</tr>';
       }).join('')+
@@ -3587,7 +3590,7 @@ window.updTot = function(cid) {
       if(el&&(el.value||'').trim()!==''){t+=parseFloat(el.value)||0;n++;}
     });
     const cell=document.getElementById('tot_'+st.id);
-    if(cell)cell.textContent=n?((Math.round((t/n)*100)/100)+' / '+pjDisp(max)):'-';
+    if(cell)cell.textContent=n?((Math.round((t/n*10/max)*100)/100)+' / 10'):'-';
   });
 };
 
@@ -3633,7 +3636,7 @@ window.saveAllRes = function(cid) {
       if(ri>-1&&removedAny)S.results.splice(ri,1);
       return;
     }
-    const tot=Math.round((all.reduce((a,m)=>a+(parseFloat(m.points)||0),0)/all.length)*100)/100;
+    const tot=Math.round((all.reduce((a,m)=>a+(parseFloat(m.points)||0),0)/all.length*10/max)*100)/100;
     const names=[...new Set(all.map(m=>m.judgeName||((gJ(m.judgeId)||{}).name||'')))].filter(Boolean).join(', ');
     let r=S.results.find(x=>x.compId===cid&&x.studentId===s.id);
     if(!r){r={id:uid(),compId:cid,studentId:s.id};S.results.push(r);}
@@ -3641,7 +3644,7 @@ window.saveAllRes = function(cid) {
   });
   if(!S.results.some(r=>r.compId===cid)){toast('Enter marks for at least one participant','error');return;}
   rankComp(cid);
-  saveState();toast('Marks saved — final is the average out of '+pjDisp(max)+', positions auto-ranked 🏅','success');renderMain();
+  saveState();toast('Marks saved — final out of 10 (avg × 10 ÷ '+pjDisp(max)+'), positions auto-ranked 🏅','success');renderMain();
 };
 
 /* ================================================================
@@ -4091,6 +4094,7 @@ window.importData = function() {
       if(!data.schedule)data.schedule=[];
       if(!data.bonus)data.bonus=[];
       if(!data.marks)data.marks=[];
+      if(!data.resScale10)scaleResults10(data);
       S=data;saveState();CU=null;render();
       toast('Data imported successfully! 💾','success');
     }catch(err){toast('Invalid JSON file','error');}
