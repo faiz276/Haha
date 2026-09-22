@@ -43,6 +43,7 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#0c0c1a;colo
   <div class="brand">
     <div class="logo" id="logo">🕌</div>
     <div><h1 id="evName">Scoreboard</h1><p id="orgName"></p></div>
+<div id="pendNote" style="display:none;background:rgba(243,156,18,.15);border:1.5px solid #f39c12;border-radius:10px;padding:8px 16px;font-weight:700;font-size:.9rem">⏳ Some results awaiting announcement</div>
   </div>
   <div class="live"><span class="dot"></span>LIVE <span class="clock" id="clock"></span></div>
 </div>
@@ -57,9 +58,10 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#0c0c1a;colo
 'use strict';
 var API_URL='api.php', API_KEY='change-me-please', KEY='pollappp_v2_state';
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function isAppr(S,cid){return !!(S.approved&&S.approved[cid]);}
 function tmPts(S,tid){
   var p=0;
-  (S.results||[]).forEach(function(r){var st=(S.students||[]).find(function(x){return x.id===r.studentId;});if(!st||st.teamId!==tid)return;p+=(+r.points||0);});
+  (S.results||[]).forEach(function(r){if(!isAppr(S,r.compId))return;var st=(S.students||[]).find(function(x){return x.id===r.studentId;});if(!st||st.teamId!==tid)return;p+=(+r.points||0);});
   (S.bonus||[]).forEach(function(b){if(b.teamId===tid)p+=(+b.points||0);});
   return p;
 }
@@ -84,6 +86,8 @@ function render(S){
       '<div class="nm"><strong>'+esc(t.name)+'</strong><span>'+t.students+' students</span></div>'+
       '<div class="pts">'+t.pts+'<small>POINTS</small></div></div>';
   }).join('');
+  var pend=(S.results||[]).some(function(r){return !isAppr(S,r.compId);});
+  document.getElementById('pendNote').style.display=pend?'':'none';
   document.getElementById('upd').textContent='Updated '+new Date().toLocaleTimeString();
 }
 function local(){try{var d=localStorage.getItem(KEY);if(d)return JSON.parse(d);}catch(e){}return null;}

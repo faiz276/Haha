@@ -317,11 +317,14 @@ function populateCompetitions() {
     document.getElementById('statusMsg').style.color = '#e0a34a';
     return;
   }
+  var appr = S.approved||{};
   S.competitions.forEach(c=>{
-    const resCount = (S.results||[]).filter(r=>r.compId===c.id).length;
+    const allRes = (S.results||[]).filter(r=>r.compId===c.id);
+    const resCount = allRes.length;
+    const live = !!appr[c.id];
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = c.name + ' (' + gCatN(c.category) + ') — ' + resCount + ' results';
+    opt.textContent = c.name + ' (' + gCatN(c.category) + ') — ' + resCount + ' results' + (resCount ? (live ? ' ✅ live' : ' ⏳ pending') : '');
     sel.appendChild(opt);
   });
   document.getElementById('statusMsg').textContent = 'Loaded ' + S.competitions.length + ' competitions.';

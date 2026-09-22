@@ -2641,7 +2641,7 @@ function defaultState() {
     config:{
       eventName:siteDomain()+' MEELAD PROGRAMME HELPER',
       orgName:'Hidaya Madrasa Chernikode',
-      adminPass:'admin123',logo:'',icon:'🕌',
+      adminPass:'admin123',logo:'',cardBg:'',icon:'🕌',
       accentColor:'#ff8c00',maxProgPerCat:0,maxGenProg:0
     },
     categories:[
@@ -2653,7 +2653,7 @@ function defaultState() {
     ],
     teams:[],students:[],competitions:[],judges:[],marks:[],
     registrations:[],attendance:[],results:[],
-    bonus:[],locked:false,theme:'light',schedule:[],resScale10:true
+    bonus:[],locked:false,theme:'light',schedule:[],resScale10:true,approved:{}
   };
 }
 
@@ -2669,6 +2669,7 @@ function loadState() {
       if (!p.judges) p.judges = [];
       if (!p.marks) p.marks = [];
       if (!p.resScale10) scaleResults10(p);
+      if (!p.approved) ensureApproved(p);
       if (!p.config) p.config = def.config;
       if (!p.config.accentColor) p.config.accentColor = '#ff8c00';
       if (!p.config.maxProgPerCat) p.config.maxProgPerCat = 0;
@@ -2760,6 +2761,7 @@ function hydrateFromServer() {
       if (!serverData.attendance) serverData.attendance = [];
       if (!serverData.marks) serverData.marks = [];
       if (!serverData.resScale10) scaleResults10(serverData);
+      if (!serverData.approved) ensureApproved(serverData);
       S = serverData;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
       render();
@@ -2870,6 +2872,8 @@ const compJudges = cid => S.judges.filter(j=>(!j.compIds||!j.compIds.length)||j.
 const compMax = c => (c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100);
 const finalFor = (cid,sid) => { const comp=gC(cid),m=compMax(comp); let t=0,n=0; (S.marks||[]).forEach(mk=>{ if(mk.compId===cid&&mk.studentId===sid){ t+=parseFloat(mk.points)||0; n++; } }); return n?Math.round((t/n*10/m)*100)/100:null; };
 function scaleResults10(d) { (d.results||[]).forEach(r=>{ const c=(d.competitions||[]).find(x=>x.id===r.compId); const m=(c&&(parseFloat(c.maxMarks)||0)>0?parseFloat(c.maxMarks):100); const v=parseFloat(r.points); if(!isNaN(v))r.points=Math.round((v*10/m)*100)/100; }); d.resScale10=true; }
+function isAppr(cid){return !!(S.approved&&S.approved[cid]);}
+function ensureApproved(d){if(!d.approved)d.approved={};(d.results||[]).forEach(r=>{if(r.compId)d.approved[r.compId]=true;});}
 const pjDisp = v => String(Math.round(v*100)/100);
 const markVal = (cid,sid,jid) => { const m=(S.marks||[]).find(x=>x.compId===cid&&x.studentId===sid&&x.judgeId===jid); return m?m.points:''; };
 
@@ -2894,22 +2898,22 @@ function stGenProg(sid) {
    ================================================================ */
 function stPts(sid) {
   let p=0;
-  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;p+=(r.points||0);});
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(!isAppr(r.compId))return;p+=(r.points||0);});
   return p;
 }
 function stStagePts(sid) {
   let p=0;
-  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='stage')p+=(r.points||0);});
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='stage'&&isAppr(r.compId))p+=(r.points||0);});
   return p;
 }
 function stNonStagePts(sid) {
   let p=0;
-  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='nonstage')p+=(r.points||0);});
+  S.results.forEach(r=>{if(r.studentId!==sid)return;const c=gC(r.compId);if(!c||c.isGroup||c.category==='general')return;if(c.type==='nonstage'&&isAppr(r.compId))p+=(r.points||0);});
   return p;
 }
 function tmPts(tid) {
   let p=0;
-  S.results.forEach(r=>{const st=gS(r.studentId);if(!st||st.teamId!==tid)return;p+=(r.points||0);});
+  S.results.forEach(r=>{const st=gS(r.studentId);if(!st||st.teamId!==tid)return;if(!isAppr(r.compId))return;p+=(r.points||0);});
   S.bonus.forEach(b=>{if(b.teamId===tid)p+=b.points;});
   return p;
 }
@@ -2918,7 +2922,7 @@ function tmCatPts(tid,catId) {
   S.results.forEach(r=>{
     const st=gS(r.studentId);if(!st||st.teamId!==tid)return;
     const c=gC(r.compId);if(!c)return;
-    if(c.category===catId||(c.category==='general'&&st.category===catId))p+=(r.points||0);
+    if((c.category===catId||(c.category==='general'&&st.category===catId))&&isAppr(r.compId))p+=(r.points||0);
   });
   return p;
 }
@@ -3110,7 +3114,7 @@ window.doAdminLogin = function() {
 function renderAdmin() {
   const groups = [
     {g:'Overview', tabs:[{id:'dashboard',ico:'📊',lbl:'Dashboard'},{id:'scoreboard',ico:'🏅',lbl:'Scoreboard'},{id:'topstudents',ico:'🌟',lbl:'Top Students'}]},
-    {g:'Management', tabs:[{id:'teams',ico:'👥',lbl:'Teams'},{id:'categories',ico:'📁',lbl:'Categories'},{id:'competitions',ico:'🏆',lbl:'Competitions'},{id:'allstudents',ico:'👤',lbl:'All Students'}]},
+    {g:'Management', tabs:[{id:'teams',ico:'👥',lbl:'Teams'},{id:'categories',ico:'📁',lbl:'Categories'},{id:'competitions',ico:'🏆',lbl:'Competitions'},{id:'announce',ico:'📢',lbl:'Announcement'},{id:'allstudents',ico:'👤',lbl:'All Students'}]},
     {g:'Event', tabs:[{id:'attendance',ico:'📋',lbl:'Attendance & Codes'},{id:'results',ico:'⚖️',lbl:'Judge Panel / Results'},{id:'judges',ico:'👨‍⚖️',lbl:'Judges'},{id:'bonus',ico:'💰',lbl:'Bonus / Minus'}]},
     {g:'Tools', tabs:[{id:'search',ico:'🔍',lbl:'Search'},{id:'pdf',ico:'📄',lbl:'PDF Downloads'},{id:'poster',ico:'🏆',lbl:'Poster Generator'},{id:'importexport',ico:'💾',lbl:'Import / Export'},{id:'settings',ico:'⚙️',lbl:'Settings'}]}
   ];
@@ -3141,6 +3145,7 @@ function renderMain() {
 function adminTab(mc) {
   const map={
     dashboard:aDash, teams:aTeams, competitions:aComps,
+    announce:aAnnounce,
     attendance:aAttend, results:aResults, judges:aJudges, scoreboard:aScoreboard,
     topstudents:aTopSts, allstudents:aAllSts, bonus:aBonus,
     categories:aCats, search:aSearch, pdf:aPDF,
@@ -3388,6 +3393,7 @@ window.delComp = function(id) {
   S.registrations=S.registrations.filter(r=>r.compId!==id);
   S.attendance=S.attendance.filter(a=>a.compId!==id);
   S.results=S.results.filter(r=>r.compId!==id);
+  if(S.approved)delete S.approved[id];
   S.marks=(S.marks||[]).filter(m=>m.compId!==id);
   S.competitions=S.competitions.filter(c=>c.id!==id);
   saveState();renderMain();toast('Competition deleted','success');
@@ -3537,7 +3543,7 @@ function drawResults(mc, cid) {
       '<span class="badge bc">'+gCatN(comp.category)+'</span>'+
       '<span class="badge '+(comp.type==='stage'?'bst':'bns')+'">'+(comp.type==='stage'?'🎭 Stage':'📝 Non-Stage')+'</span>'+
     '</div>'+
-    '<div class="infobox"><span class="ii">ℹ️</span>Each judge marks out of '+pjDisp(max)+' in their own column. Final = average scaled to 10 (e.g. 60 + 70 = 130 ÷ 2 = 65 → 65 × 10 ÷ 100 = 6.5). Positions rank automatically from the final. Leave a box empty to skip.</div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Each judge marks out of '+pjDisp(max)+' in their own column. Final = average scaled to 10 (e.g. 60 + 70 = 130 ÷ 2 = 65 → 65 × 10 ÷ 100 = 6.5). Positions rank automatically from the final. Leave a box empty to skip. After saving, approve this competition in 📢 Announcement — only approved scores count on the Scoreboard / Top Students.</div>'+
     '<div class="tbl-wrap glass"><table><thead><tr><th>Chest</th><th>Name</th><th>Team</th>'+
       cols.map(j=>'<th>'+esc(j.name)+'<br><span style="font-weight:500;color:var(--t3);font-size:.7rem">out of '+pjDisp(max)+'</span></th>').join('')+
       '<th style="width:80px">Grade</th><th style="width:90px">Final / 10</th><th style="width:90px">Position</th></tr></thead><tbody>'+
@@ -3644,7 +3650,7 @@ window.saveAllRes = function(cid) {
   });
   if(!S.results.some(r=>r.compId===cid)){toast('Enter marks for at least one participant','error');return;}
   rankComp(cid);
-  saveState();toast('Marks saved — final out of 10 (avg × 10 ÷ '+pjDisp(max)+'), positions auto-ranked 🏅','success');renderMain();
+  saveState();toast('Marks saved — sent to 📢 Announcement for approval (final out of 10, positions auto-ranked 🏅)','success');renderMain();
 };
 
 /* ================================================================
@@ -3713,12 +3719,12 @@ function aTopSts(mc) {
 
 function buildTopSec(catId) {
   const sts=S.students.filter(s=>s.category===catId);
-  const overall=sts.map(s=>({...s,pts:stPts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
-  const stage=sts.map(s=>({...s,pts:stStagePts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
-  const nonstage=sts.map(s=>({...s,pts:stNonStagePts(s.id)})).sort((a,b)=>b.pts-a.pts).slice(0,15);
+  const overall=sts.map(s=>({...s,pts:stPts(s.id)})).sort((a,b)=>b.pts-a.pts);
+  const stage=sts.map(s=>({...s,pts:stStagePts(s.id)})).sort((a,b)=>b.pts-a.pts);
+  const nonstage=sts.map(s=>({...s,pts:stNonStagePts(s.id)})).sort((a,b)=>b.pts-a.pts);
   function rl(title,ico,list){
     return '<div class="glass" style="padding:20px;margin-bottom:16px"><h3 style="margin-bottom:12px">'+ico+' '+title+'</h3>'+
-      (list.filter(s=>s.pts>0).map((s,i)=>{
+      (list.map((s,i)=>{
         const tm=gT(s.teamId);
         const ri=i<3?['🥇','🥈','🥉'][i]:'#'+(i+1);
         return '<div class="rank-card" style="padding:10px">'+
@@ -3730,10 +3736,44 @@ function buildTopSec(catId) {
       }).join('')||'<p style="color:var(--t3);padding:12px">No results yet</p>')+
     '</div>';
   }
-  return rl('Overall Top 15','🏆',overall)+rl('Stage (Sargha Prathiba)','🎭',stage)+rl('Non-Stage (Kala Prathiba)','📝',nonstage);
+  return rl('Overall Rankings — All Students','🏆',overall)+rl('Stage (Sargha Prathiba) — All','🎭',stage)+rl('Non-Stage (Kala Prathiba) — All','📝',nonstage);
 }
 
 /* ================================================================
+   ADMIN: ANNOUNCEMENT (approve results before they go public)
+   ================================================================ */
+function aAnnounce(mc) {
+  const list=S.competitions.map(c=>{
+    const res=compRes(c.id);
+    return {c, n:res.length, appr:isAppr(c.id)};
+  });
+  const pend=list.filter(x=>x.n&&!x.appr).length;
+  mc.innerHTML=
+    '<div class="sh"><h2>📢 Announcement</h2>'+
+    (pend?'<span class="badge bwn">'+pend+' waiting approval</span>':'<span class="badge bok">All clear ✅</span>')+'</div>'+
+    '<div class="infobox"><span class="ii">ℹ️</span>Judges\' saved marks land here first. Tick <strong>Approve</strong> and that competition\'s scores go live on the Scoreboard, Top Students, team dashboards and the 📺 TV Display. Un-approved scores stay hidden everywhere public — only judges and admins can see them.</div>'+
+    (list.length?'<div class="tbl-wrap glass"><table><thead><tr><th>Competition</th><th>Category</th><th>Results</th><th>Status</th><th style="width:130px">Approve</th></tr></thead><tbody>'+
+      list.map(x=>
+        '<tr>'+
+          '<td><strong>'+esc(x.c.name)+'</strong></td>'+
+          '<td><span class="badge bc">'+gCatN(x.c.category)+'</span></td>'+
+          '<td>'+(x.n?x.n+' saved':'<span style="color:var(--t3)">no marks yet</span>')+'</td>'+
+          '<td>'+(x.n?(x.appr?'<span class="badge bok">✅ Live</span>':'<span class="badge bwn">⏳ Pending</span>'):'<span style="color:var(--t3)">—</span>')+'</td>'+
+          '<td><input type="checkbox" '+(x.appr?'checked':'')+(x.n?'':' disabled')+' onchange="toggleApprove(\''+x.c.id+'\',this.checked)" style="width:22px;height:22px;accent-color:#27ae60;cursor:pointer" title="Approve"></td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table></div>':
+    '<div class="empty glass"><div class="ei">📢</div><p>No competitions yet.</p></div>');
+}
+
+window.toggleApprove = function(cid, on) {
+  if(!S.approved)S.approved={};
+  if(on)S.approved[cid]=true;else delete S.approved[cid];
+  saveState();renderMain();toast(on?'Approved — scores are now live ✅':'Un-approved — scores hidden from public ⏸️',on?'success':'warning');
+};
+
+/* ================================================================
+
    ADMIN: ALL STUDENTS
    ================================================================ */
 function aAllSts(mc) {
@@ -3970,7 +4010,8 @@ function pdfWin(title,content){
 function chestCardHTML(s) {
   const tm=gT(s.teamId);
   const acc=S.config.accentColor||'#ff8c00';
-  return '<div class="ccard">'+
+  const bg=S.config.cardBg||'';
+  return '<div class="ccard'+(bg?' hasbg':'')+'"'+(bg?' style="background-image:url(\''+bg.replace(/\'/g,"\\'")+'\')"':'')+'>'+
     '<div class="cbar"></div>'+
     (S.config.logo?'<img class="clogo" src="'+S.config.logo+'">':'<div class="clogo-ph">'+esc(S.config.icon||'🕌')+'</div>')+
     '<div class="cevt">'+esc(S.config.eventName)+'</div>'+
@@ -3993,6 +4034,9 @@ function chestCardWin(title, cardsHtml) {
     '.cchest{font-size:2.1rem;font-weight:900;margin:4px 0}'+
     '.cname{font-size:1.15rem;font-weight:800;color:#1a1a2e;margin:2px 0}'+
     '.ccat{font-size:.76rem;color:#555;margin-bottom:8px}'+
+    '.ccard.hasbg{background-size:cover;background-position:center}'+
+    '.ccard.hasbg::before{content:\'\';position:absolute;inset:0;background:rgba(255,255,255,.82)}'+
+    '.ccard.hasbg>div,.ccard.hasbg>img{position:relative;z-index:1}'+
     '.cqr{display:flex;justify-content:center;margin-top:4px}'+
     '@media print{.cwrap{gap:10px}.ccard{page-break-inside:avoid}}';
   const h='<html><head><title>'+esc(title)+'</title><style>'+css+'</style></head><body><div class="cwrap">'+cardsHtml+'</div></body></html>';
@@ -4095,6 +4139,7 @@ window.importData = function() {
       if(!data.bonus)data.bonus=[];
       if(!data.marks)data.marks=[];
       if(!data.resScale10)scaleResults10(data);
+      if(!data.approved)ensureApproved(data);
       S=data;saveState();CU=null;render();
       toast('Data imported successfully! 💾','success');
     }catch(err){toast('Invalid JSON file','error');}
@@ -4124,6 +4169,9 @@ function aSettings(mc) {
         '<div class="fg"><label>App Icon (emoji, used when no logo is set)</label><input id="sAI" value="'+esc(S.config.icon||'🕌')+'" maxlength="4" style="width:80px;font-size:1.4rem;text-align:center"></div>'+
         '<div class="fg"><label>Logo URL</label><input id="sLU" value="'+(S.config.logo&&!S.config.logo.startsWith('data:')?esc(S.config.logo):'')+'" placeholder="https://..."></div>'+
         '<div class="fg"><label>Or Upload Logo Image</label><input type="file" id="sLF" accept="image/*"></div>'+
+        '<div class="fg"><label>Chest Card Background URL</label><input id="sCB" value="'+(S.config.cardBg&&!S.config.cardBg.startsWith('data:')?esc(S.config.cardBg):'')+'" placeholder="https://..."></div>'+
+        '<div class="fg"><label>Or Upload Card Background</label><input type="file" id="sCF" accept="image/*"></div>'+
+        (S.config.cardBg?'<div style="margin-bottom:14px"><img src="'+S.config.cardBg+'" style="height:58px;border-radius:10px" onerror="this.style.display=\'none\'"> <button class="btn-ghost" style="font-size:.78rem" onclick="removeCardBg()">✕ Remove Background</button></div>':'')+
         '<div class="infobox" style="margin-bottom:14px"><span class="ii">ℹ️</span>If a logo is set, it replaces the app icon everywhere (header, login screen, browser tab).</div>'+
         (S.config.logo?'<div style="margin-bottom:14px"><img src="'+S.config.logo+'" style="height:58px;border-radius:10px" onerror="this.style.display=\'none\'"> <button class="btn-ghost" style="font-size:.78rem" onclick="removeLogo()">✕ Remove Logo</button></div>':'')+
         '<div class="fg-row">'+
@@ -4150,6 +4198,13 @@ window.saveSettings = function() {
   S.config.maxProgPerCat=parseInt(document.getElementById('sMP').value)||0;
   S.config.maxGenProg=parseInt(document.getElementById('sMG').value)||0;
   const lu=document.getElementById('sLU').value.trim();
+  S.config.cardBg=document.getElementById('sCB').value.trim();
+  const cf=document.getElementById('sCF')?.files[0];
+  if(cf){
+    const reader2=new FileReader();
+    reader2.onload=function(e){S.config.cardBg=e.target.result;saveState();render();toast('Settings saved! 💾','success');};
+    reader2.readAsDataURL(cf);return;
+  }
   const lf=document.getElementById('sLF')?.files[0];
   if(lf){
     const reader=new FileReader();
@@ -4158,6 +4213,11 @@ window.saveSettings = function() {
   }
   if(lu)S.config.logo=lu;
   saveState();render();toast('Settings saved! 💾','success');
+};
+
+window.removeCardBg = function() {
+  S.config.cardBg='';
+  saveState();render();toast('Card background removed','success');
 };
 
 window.removeLogo = function() {

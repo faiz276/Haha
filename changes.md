@@ -1,4 +1,4 @@
-# Changes — Meelad Programme Helper (updated 2026-09-20)
+# Changes — Meelad Programme Helper (updated 2026-09-22)
 
 Base: user's `public_html (5).zip` upload, plus the fixes below.
 
@@ -30,7 +30,33 @@ Base: user's `public_html (5).zip` upload, plus the fixes below.
   removes/recomputes the related per-judge marks. Full backup import/export
   and team export include `marks`.
 
-## 2. TV scoreboard display page — `display.html` (new file)
+## 2. 📢 Announcement — approve results before they go public — `index.html`
+- New **Announcement** tab under Management. Every competition whose results
+  are saved appears here with Saved count, Live/Pending status and an
+  **Approve checkbox** (`toggleApprove()` → `S.approved[compId]`).
+- Until approved, that competition's scores are hidden from **Scoreboard,
+  Top Students, team dashboards and the 📺 TV Display** (all point-sum
+  helpers — `stPts`, `stStagePts`, `stNonStagePts`, `tmPts`, `tmCatPts` —
+  skip un-approved comps). Judges/admins still see the saved marks in the
+  Judge Panel. `delComp` clears the approval key too.
+- Old data auto-approves once (`ensureApproved()` in `loadState`/
+  `hydrateFromServer`/import), so existing live scores never vanish after
+  the update. New marks start Pending until you tick Approve.
+- Judge Panel infobox + save toast now point to Announcement; TV page shows
+  a "⏳ Some results awaiting announcement" note while anything is pending;
+  Poster Generator labels each comp ✅ live / ⏳ pending in its dropdown.
+
+## 3. Top Students shows ALL students — `index.html`
+- Removed the top-15 cap (`slice(0,15)`) from Overall, Stage and Non-Stage
+  lists — every student in the category is ranked (un-scored students show
+  0 at the bottom instead of "No results yet").
+
+## 4. Chest-card background upload — `index.html`
+- Settings has **Chest Card Background URL + Upload** (`S.config.cardBg`,
+  removable via ✕). `chestCardHTML()` prints cards over it with a soft
+  white veil so names/QR stay readable — leave empty for the plain card.
+
+## 5. TV scoreboard display page — `display.html` (new file)
 - Separate full-screen page showing **Overall Rankings only** (no Prathiba
   awards): dark theme, large fonts, gold/silver/bronze top-3 rows, event name,
   logo, LIVE clock.
