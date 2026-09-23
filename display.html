@@ -48,6 +48,7 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#0c0c1a;colo
   <div class="live"><span class="dot"></span>LIVE <span class="clock" id="clock"></span></div>
 </div>
 <div class="ribbon">🏆 Overall Rankings 🏆</div>
+<div id="progLine" style="display:none;text-align:center;font-weight:800;font-size:clamp(.95rem,2.2vw,1.35rem);margin-bottom:2vh;padding:10px 22px;border:1.5px solid gold;border-radius:14px;background:rgba(255,215,0,.10);max-width:1200px;width:100%"></div>
 <div class="board" id="board"><div class="empty">Loading scores…</div></div>
 <div class="footer">
   <span id="upd"></span>
@@ -59,6 +60,17 @@ body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#0c0c1a;colo
 var API_URL='api.php', API_KEY='change-me-please', KEY='pollappp_v2_state';
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function isAppr(S,cid){return !!(S.approved&&S.approved[cid]);}
+function compSl(c){return (c&&(parseInt(c.sl)||0))||0;}
+function progTag(c){var n=compSl(c);return n?n+') ':'';}
+function apprProg(S){
+  var list=S.competitions||[],t=list.length;
+  var ap=list.filter(function(c){return isAppr(S,c.id);});
+  var lastSl=0;ap.forEach(function(c){var v=parseInt(c.sl)||0;if(v>lastSl)lastSl=v;});
+  var lastC=null,lastTm=0,at=S.approvedAt||{};
+  ap.forEach(function(c){var v=at[c.id]||0;if(v>=lastTm){lastTm=v;lastC=c;}});
+  if(!lastC&&ap.length){lastC=ap.slice().sort(function(a,b){return compSl(a)-compSl(b);})[ap.length-1];}
+  return {t:t,n:ap.length,pend:t-ap.length,lastSl:lastSl,lastC:lastC};
+}
 function tmPts(S,tid){
   var p=0;
   (S.results||[]).forEach(function(r){if(!isAppr(S,r.compId))return;var st=(S.students||[]).find(function(x){return x.id===r.studentId;});if(!st||st.teamId!==tid)return;p+=(+r.points||0);});
@@ -88,6 +100,13 @@ function render(S){
   }).join('');
   var pend=(S.results||[]).some(function(r){return !isAppr(S,r.compId);});
   document.getElementById('pendNote').style.display=pend?'':'none';
+  try{
+    var p=apprProg(S),pl=document.getElementById('progLine');
+    if(pl&&p.t){
+      if(!p.n){pl.style.display='';pl.textContent='⏳ No programs announced yet — 0 of '+p.t+' live';}
+      else{var nm=p.lastC?('#'+p.lastSl+' '+p.lastC.name):('Program '+p.lastSl);pl.style.display='';pl.textContent='✅ After Program '+p.lastSl+' of '+p.t+' ('+nm+') — team totals include '+p.n+' announced program'+(p.n>1?'s':'')+(p.pend?'; '+p.pend+' still to go':' — all announced 🎉');}
+    } else if(pl){pl.style.display='none';}
+  }catch(_){}
   document.getElementById('upd').textContent='Updated '+new Date().toLocaleTimeString();
 }
 function local(){try{var d=localStorage.getItem(KEY);if(d)return JSON.parse(d);}catch(e){}return null;}

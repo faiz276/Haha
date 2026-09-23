@@ -56,6 +56,31 @@ Base: user's `public_html (5).zip` upload, plus the fixes below.
   removable via ✕). `chestCardHTML()` prints cards over it with a soft
   white veil so names/QR stay readable — leave empty for the plain card.
 
+## 6. Program serial numbers (1, 2, 3…) everywhere — `index.html`, `poster.html`
+- Competition Add/Edit modal has a new **"Program No"** field (`c.sl`).
+  Existing competitions auto-get numbers once (`ensureCompSl()` in
+  `loadState`/`hydrateFromServer`/import, same pattern as earlier migrations);
+  cards show them as **#N badges**, lists as **"N) Name"** prefixes.
+- Everywhere a competition is listed now sorts by Program No and shows the
+  number: Competitions grid, Attendance dropdown, Judge Panel / Results,
+  judge-assign checkboxes, Team Register, My Competitions, Search, PDF
+  buttons + PDF headings, student-modal rows, participation chips,
+  `viewCompParts` title, result-entry title — and the Poster Generator
+  dropdown (also sorted). Announcement has a new **No** column.
+- Approving stamps the time (`S.approvedAt[compId]` in `toggleApprove()`,
+  cleared on un-approve and on `delComp`), so "latest approved" is exact.
+
+## 7. "After Program N of T" progress line — `index.html`, `display.html`
+- Admin **Scoreboard** shows a green note under the Rankings ribbon
+  (`progNote()` from `apprProg()`): **"After Program N of T (#N Name) —
+  team totals above include N announced programs; M still to go"**
+  (or "all announced 🎉" / "No programs announced yet — 0 of T live").
+- The 📺 **TV Display** shows the same line under its ribbon (`#progLine`,
+  mirrored `apprProg` logic since it has its own script): e.g.
+  **"After Program 1 of 2 (#1 kannada song) — team totals include 1
+  announced program; 1 still to go"** — so viewers instantly know how many
+  programs are done and how many remain.
+
 ## 5. TV scoreboard display page — `display.html` (new file)
 - Separate full-screen page showing **Overall Rankings only** (no Prathiba
   awards): dark theme, large fonts, gold/silver/bronze top-3 rows, event name,

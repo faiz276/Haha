@@ -318,13 +318,14 @@ function populateCompetitions() {
     return;
   }
   var appr = S.approved||{};
-  S.competitions.forEach(c=>{
+  S.competitions.slice().sort(function(a,b){return ((parseInt(a.sl)||0)-(parseInt(b.sl)||0))||String(a.name||'').localeCompare(String(b.name||''));}).forEach(c=>{
     const allRes = (S.results||[]).filter(r=>r.compId===c.id);
     const resCount = allRes.length;
     const live = !!appr[c.id];
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = c.name + ' (' + gCatN(c.category) + ') — ' + resCount + ' results' + (resCount ? (live ? ' ✅ live' : ' ⏳ pending') : '');
+    var psl=parseInt(c.sl)||0;
+    opt.textContent = (psl?psl+') ':'') + c.name + ' (' + gCatN(c.category) + ') — ' + resCount + ' results' + (resCount ? (live ? ' ✅ live' : ' ⏳ pending') : '');
     sel.appendChild(opt);
   });
   document.getElementById('statusMsg').textContent = 'Loaded ' + S.competitions.length + ' competitions.';
