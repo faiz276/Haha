@@ -1,0 +1,26 @@
+{
+  "title": "मीरा की उड़ान",
+  "voice": "rohan",
+  "style": ", flat 2D vector storybook illustration, warm soft pastel colors, clean outlines, detailed background, cinematic wide shot, no text",
+  "negative": "text, watermark, letters, blurry, photo, realistic, deformed",
+  "scenes": [
+    {"text": "बनारस के घाटों पर सुबह की आरती की घंटियाँ गूंज रही थीं।", "prompt": "Varanasi ghats at sunrise, river Ganga, ancient temples and steps, wooden boats, diyas, golden sky", "motion": "in"},
+    {"text": "मीरा एक गरीब नाविक परिवार की बेटी थी।", "prompt": "empty wooden rowing boat tied at river ghat steps, morning light, temples behind", "hero": {"x": 0.55, "y": 0.92, "h": 0.55, "pose": "stand"}, "motion": "right"},
+    {"text": "रात को वह लालटेन की रोशनी में पढ़ाई करती थी।", "prompt": "small humble room at night, wooden desk with books and glowing kerosene lantern, window with moon, cozy", "hero": {"x": 0.4, "y": 0.95, "h": 0.6, "pose": "read"}, "motion": "in"},
+    {"text": "एक दिन उसे दिल्ली के मेडिकल कॉलेज में स्कॉलरशिप मिल गई।", "prompt": "letter envelope and acceptance certificate on wooden table, sunlight, flowers, celebration mood", "motion": "out"},
+    {"text": "पूरे मोहल्ले ने मिठाई बाँटकर उसे विदा किया।", "prompt": "Indian railway station platform with train, morning, colorful crowd, garlands", "hero": {"x": 0.5, "y": 0.95, "h": 0.5, "pose": "wave"}, "motion": "left"},
+    {"text": "दिल्ली की भीड़ और ऊँची इमारतें उसे हैरान कर रही थीं।", "prompt": "New Delhi city skyline at dusk, India Gate, busy roads, metro train, lights", "motion": "in"},
+    {"text": "उसने दिन रात मेहनत की और डॉक्टर बन गई।", "prompt": "bright hospital corridor, clean, plants, sunlight through windows", "hero": {"x": 0.5, "y": 0.95, "h": 0.62, "pose": "coat"}, "motion": "in"},
+    {"text": "फिर वह गाँव गाँव जाकर लोगों का इलाज करने लगी।", "prompt": "Rajasthan desert village with mud huts, camels, sand dunes, warm afternoon", "hero": {"x": 0.35, "y": 0.95, "h": 0.5, "pose": "coat"}, "motion": "right"},
+    {"text": "जयपुर के गुलाबी महल शाम की धूप में चमक रहे थे।", "prompt": "Hawa Mahal pink palace Jaipur at golden hour, street with rickshaws", "motion": "out"},
+    {"text": "आगरा में ताजमहल देखकर उसकी आँखें भर आईं।", "prompt": "Taj Mahal with reflecting pool, gardens, soft morning sky", "hero": {"x": 0.22, "y": 0.97, "h": 0.45, "pose": "stand"}, "motion": "in"},
+    {"text": "लद्दाख की बर्फ़ीली पहाड़ियों में भी उसने कैंप लगाया।", "prompt": "Ladakh snowy mountains, blue lake, prayer flags, small white medical tents", "hero": {"x": 0.6, "y": 0.96, "h": 0.45, "pose": "coat"}, "motion": "left"},
+    {"text": "केरल की हरी बैकवॉटर्स में नाव चलाते हुए उसे बचपन याद आया।", "prompt": "Kerala backwaters, coconut palms, houseboat, green water, calm", "motion": "right"},
+    {"text": "मुंबई की बारिश में समंदर किनारे वह देर तक खड़ी रही।", "prompt": "Mumbai Marine Drive in monsoon rain, sea waves, gray clouds, street lamps", "hero": {"x": 0.45, "y": 0.96, "h": 0.5, "pose": "stand"}, "motion": "in"},
+    {"text": "मगर हर जगह उसे बनारस की गलियाँ याद आती रहीं।", "prompt": "cozy window seat on a rainy evening, cup of tea on table, books on shelf", "hero": {"x": 0.5, "y": 1.0, "h": 0.7, "pose": "sad"}, "motion": "in"},
+    {"text": "आखिरकार वह घर लौटी और अपने पिता के गले लग गई।", "prompt": "old house courtyard in Varanasi, tulsi plant, brass pots, warm sunlight", "hero": {"x": 0.5, "y": 0.97, "h": 0.6, "pose": "hug"}, "motion": "in"},
+    {"text": "घाट के पास उसने एक छोटा सा मुफ़्त क्लिनिक खोला।", "prompt": "small cheerful clinic building with blue door near river ghats, plants, sunny day", "hero": {"x": 0.3, "y": 0.96, "h": 0.5, "pose": "wave"}, "motion": "right"},
+    {"text": "और नई नाव पर सवार उसके पिता गर्व से मुस्कुराए।", "prompt": "brand new colorful wooden boat on Ganga river at sunset, temples on bank", "motion": "out"},
+    {"text": "मीरा मुस्कुराई, क्योंकि उसकी मेहनत रंग ले आई थी।", "prompt": "rooftop terrace overlooking Varanasi ghats at sunset, kites in sky, flowers", "hero": {"x": 0.5, "y": 0.96, "h": 0.6, "pose": "wave"}, "motion": "in"}
+  ]
+}
