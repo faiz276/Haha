@@ -1,0 +1,16 @@
+{
+  "name": "stickman-explainer-short",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Code-rendered vertical explainer shorts: Three.js set, canvas cutout characters, Kokoro voice.",
+  "scripts": {
+    "voice": ".venv/bin/python tts.py",
+    "sheet": "node render.mjs --sheet --scale 0.5",
+    "render": "node render.mjs",
+    "mix": "node mix.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.17.0",
+    "three": "^0.187.0"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "voice": "am_michael",
+  "speed": 1.08,
+  "lang": "en-us",
+  "music": { "file": "bgm-easy-lemon.mp3", "volume": 0.11 },
+  "whipSwish": { "volume": 0.55 },
+  "cues": [
+    { "file": "handleCoins2.ogg", "shot": "hook", "u": 0, "vol": 0.5 },
+    { "file": "handleCoins2.ogg", "shot": "hook", "u": 0.34, "vol": 0.5 },
+    { "file": "handleCoins2.ogg", "shot": "hook", "u": 0.56, "vol": 0.5 },
+    { "file": "handleCoins2.ogg", "shot": "hook", "u": 0.76, "vol": 0.5 },
+    { "file": "splash_06.ogg", "shot": "fish", "offset": 0.15, "vol": 0.45 },
+    { "file": "splash_09.ogg", "shot": "fish", "offset": 0.6, "vol": 0.4 },
+    { "file": "splash_10.ogg", "shot": "fish", "offset": 1.0, "vol": 0.4 },
+    { "file": "handleCoins.ogg", "shot": "shells", "offset": 0.12, "vol": 0.55 },
+    { "file": "handleCoins.ogg", "shot": "price", "offset": 0.12, "vol": 0.55 },
+    { "file": "handleCoins.ogg", "shot": "full", "offset": 0.1, "vol": 0.6 },
+    { "file": "handleCoins2.ogg", "shot": "sacks", "offset": 0.4, "vol": 0.4 },
+    { "file": "handleCoins2.ogg", "shot": "sacks", "offset": 0.66, "vol": 0.4 },
+    { "file": "handleCoins2.ogg", "shot": "sacks", "offset": 0.92, "vol": 0.4 },
+    { "file": "handleCoins2.ogg", "shot": "sacks", "offset": 1.18, "vol": 0.4 },
+    { "file": "handleCoins2.ogg", "shot": "sacks", "offset": 1.44, "vol": 0.4 },
+    { "file": "handleCoins.ogg", "shot": "rich", "offset": 0, "vol": 0.5 },
+    { "file": "handleCoins.ogg", "shot": "twenty", "offset": 0.12, "vol": 0.55 },
+    { "file": "handleCoins.ogg", "shot": "fifty", "offset": 0.12, "vol": 0.55 },
+    { "file": "handleCoins.ogg", "shot": "hundred", "offset": 0.12, "vol": 0.55 },
+    { "file": "splash_02.ogg", "shot": "boat", "offset": 0.1, "vol": 0.35 },
+    { "file": "bubble_02.ogg", "shot": "jar", "offset": 0.75, "vol": 0.7 },
+    { "file": "handleCoins.ogg", "shot": "made", "offset": 0.2, "vol": 0.45 }
+  ]
+}

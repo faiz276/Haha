@@ -10,10 +10,17 @@ from faster_whisper import WhisperModel
 from kokoro_onnx import Kokoro
 
 HERE = Path(__file__).parent
-MODELS = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/an/models")
-VOICE = sys.argv[2] if len(sys.argv) > 2 else "am_michael"
-SPEED = float(sys.argv[3]) if len(sys.argv) > 3 else 1.08
+MODELS = HERE / "models"
+cfg = json.loads((HERE / "audio.json").read_text())
+# command line overrides audio.json:  python tts.py [voice] [speed]
+VOICE = sys.argv[1] if len(sys.argv) > 1 else cfg.get("voice", "am_michael")
+SPEED = float(sys.argv[2]) if len(sys.argv) > 2 else float(cfg.get("speed", 1.08))
+LANG = cfg.get("lang", "en-us")
 LEAD = 0.15
+
+ids = [l["id"] for l in json.loads((HERE / "script.json").read_text())]
+if len(ids) != len(set(ids)):
+    sys.exit("script.json: sentence ids must be unique")
 
 script = json.loads((HERE / "script.json").read_text())
 kokoro = Kokoro(str(MODELS / "kokoro-v1.0.onnx"), str(MODELS / "voices-v1.0.bin"))
@@ -31,7 +38,7 @@ def trim(x, sr, thr=0.012, pad=0.03):
 parts, sents, t, sr = [], [], LEAD, 24000
 parts.append(np.zeros(int(LEAD * sr), dtype=np.float32))
 for line in script:
-    samples, sr = kokoro.create(line["text"], voice=VOICE, speed=SPEED, lang="en-us")
+    samples, sr = kokoro.create(line["text"], voice=VOICE, speed=SPEED, lang=LANG)
     samples = trim(samples.astype(np.float32), sr)
     dur = len(samples) / sr
     sents.append({"id": line["id"], "text": line["text"], "start": round(t, 3), "end": round(t + dur, 3)})
@@ -72,6 +79,7 @@ for s in sents:
         s["words"] = ws
 
 (out / "timings.json").write_text(json.dumps({"duration": round(len(audio) / sr, 3), "sentences": sents}, indent=1))
-print("duration", len(audio) / sr, "sentences", len(sents), "fallbacks", fallbacks)
+nwords = sum(len(s["text"].split()) for s in sents)
+print(f"voice {VOICE} speed {SPEED} | duration {len(audio) / sr:.2f}s | {len(sents)} sentences | {nwords} words | caption-timing fallbacks {fallbacks}")
 for s in sents:
     print(f'{s["start"]:6.2f}-{s["end"]:6.2f} {s["id"]}')
