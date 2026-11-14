@@ -26,7 +26,7 @@ const parts = [
   `[2:a]aresample=48000,atrim=0:${dur.toFixed(2)},volume=0.11,afade=t=in:d=0.6,afade=t=out:st=${(dur - 1.6).toFixed(2)}:d=1.6[bg]`,
 ];
 fx.forEach(([, t, v], i) => parts.push(`[${i + 3}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${v},adelay=${Math.max(0, Math.round(t * 1000))}:all=1[f${i}]`));
-parts.push(`[vo][bg]${fx.map((_, i) => `[f${i}]`).join('')}amix=inputs=${fx.length + 2}:normalize=0:duration=longest,alimiter=limit=0.8,atrim=0:${dur.toFixed(2)}[a]`);
+parts.push(`[vo][bg]${fx.map((_, i) => `[f${i}]`).join('')}amix=inputs=${fx.length + 2}:normalize=0:duration=longest,alimiter=limit=0.8,volume=-2dB,atrim=0:${dur.toFixed(2)}[a]`);
 const out = path.join(ROOT, 'out/island-inflation-short.mp4');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 args.push('-filter_complex', parts.join(';'), '-map', '0:v:0', '-map', '[a]', '-dn', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out);
